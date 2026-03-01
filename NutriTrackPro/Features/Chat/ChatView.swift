@@ -41,11 +41,11 @@ struct ChatView: View {
         """
     }
 
-    private let quickPrompts = [
-        "Quanto de proteína comi hoje?",
-        "Sugestão de lanche saudável",
-        "Estou no caminho certo?",
-        "O que falta para atingir minha meta?",
+    private let quickPrompts: [(icon: String, text: String)] = [
+        ("fork.knife",    "Quanto de proteína comi hoje?"),
+        ("sparkles",      "Sugestão de lanche saudável"),
+        ("drop.fill",     "Dicas para beber mais água"),
+        ("chart.bar",     "Como está minha hidratação?"),
     ]
 
     var body: some View {
@@ -57,6 +57,7 @@ struct ChatView: View {
                         LazyVStack(spacing: 12) {
                             if messages.isEmpty {
                                 welcomeView
+                                quickPromptsBar
                             }
 
                             ForEach(messages) { msg in
@@ -72,10 +73,7 @@ struct ChatView: View {
                                     }
                                 } else {
                                     MessageBubbleView(
-                                        message: ChatMessage(
-                                            role: "assistant",
-                                            content: streamingText
-                                        )
+                                        message: ChatMessage(role: "assistant", content: streamingText)
                                     )
                                     .id("streaming")
                                 }
@@ -91,19 +89,28 @@ struct ChatView: View {
                     }
                 }
 
-                // Quick prompts
-                if messages.isEmpty {
-                    quickPromptsBar
-                }
-
                 Divider()
 
                 // Campo de entrada
                 inputBar
             }
-            .background(AppColors.background.ignoresSafeArea())
-            .navigationTitle("Nutri IA")
+            .background(Color(.systemGray6).ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("Nutri IA")
+                        .font(.system(size: 17, weight: .bold))
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Text("Pro")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(AppColors.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(AppColors.primary.opacity(0.12), in: Capsule())
+                        .overlay(Capsule().stroke(AppColors.primary.opacity(0.3), lineWidth: 1))
+                }
+            }
         }
     }
 
@@ -111,38 +118,52 @@ struct ChatView: View {
 
     private var welcomeView: some View {
         VStack(spacing: 12) {
-            Text("🥗")
-                .font(.system(size: 48))
-            Text("Olá! Sou a Nutri, sua nutricionista IA.")
-                .font(.system(size: 16, weight: .medium))
+            ZStack {
+                Circle()
+                    .fill(AppColors.primary.opacity(0.1))
+                    .frame(width: 72, height: 72)
+                Image(systemName: "leaf.fill")
+                    .font(.system(size: 32, weight: .medium))
+                    .foregroundStyle(AppColors.primary)
+            }
+            .padding(.top, 24)
+
+            Text("NutriTrack Pro")
+                .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(AppColors.text)
-                .multilineTextAlignment(.center)
-            Text("Posso analisar sua alimentação de hoje, sugerir refeições e te ajudar a atingir seus objetivos.")
-                .font(.subheadline)
+
+            Text("Olá! Sou a Nutri, sua nutricionista IA.\nComo posso ajudar no seu plano alimentar hoje?")
+                .font(.system(size: 15))
                 .foregroundStyle(AppColors.textSecondary)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
         }
-        .padding(24)
+        .padding(.bottom, 8)
     }
 
     private var quickPromptsBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(quickPrompts, id: \.self) { prompt in
+                ForEach(quickPrompts, id: \.text) { prompt in
                     Button {
-                        send(text: prompt)
+                        send(text: prompt.text)
                     } label: {
-                        Text(prompt)
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(AppColors.primary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(AppColors.primary.opacity(0.1), in: Capsule())
+                        HStack(spacing: 6) {
+                            Image(systemName: prompt.icon)
+                                .font(.system(size: 12))
+                            Text(prompt.text)
+                                .font(.system(size: 13, weight: .medium))
+                        }
+                        .foregroundStyle(AppColors.primary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(AppColors.primary.opacity(0.1), in: Capsule())
+                        .overlay(Capsule().stroke(AppColors.primary.opacity(0.25), lineWidth: 1))
                     }
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.bottom, 8)
         }
     }
 
@@ -153,7 +174,7 @@ struct ChatView: View {
                 .font(.system(size: 15))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(AppColors.background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                 .focused($fieldFocused)
 
             Button {
@@ -161,18 +182,19 @@ struct ChatView: View {
                 send(text: inputText)
             } label: {
                 Image(systemName: "paperplane.fill")
-                    .font(.system(size: 18))
+                    .font(.system(size: 16))
                     .foregroundStyle(.white)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 44, height: 44)
                     .background(
-                        Circle().fill(inputText.isEmpty ? AppColors.primary.opacity(0.3) : AppColors.primary)
+                        inputText.isEmpty ? AppColors.primary.opacity(0.35) : AppColors.primary,
+                        in: RoundedRectangle(cornerRadius: 12)
                     )
             }
             .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isStreaming)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(AppColors.surface)
+        .background(.white)
     }
 
     // MARK: – Logic

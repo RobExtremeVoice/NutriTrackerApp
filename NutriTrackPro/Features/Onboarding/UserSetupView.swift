@@ -16,6 +16,7 @@ struct UserSetupView: View {
     @State private var heightCm    = 170.0
     @State private var activity    = ActivityLevel.moderate
     @State private var goal        = HealthGoal.maintain
+    @State private var waterLiters = 2.5
 
     // Resultado calculado
     @State private var tdeeResult: TDEEResult?
@@ -25,55 +26,127 @@ struct UserSetupView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
+
                     // Header
-                    VStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("Configure seu perfil")
-                            .font(.title.weight(.bold))
+                            .font(.system(size: 28, weight: .bold))
                             .foregroundStyle(AppColors.text)
                         Text("Vamos calcular suas metas personalizadas")
-                            .font(.subheadline)
+                            .font(.system(size: 15))
                             .foregroundStyle(AppColors.textSecondary)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
                     .padding(.top, 24)
 
-                    // Form
-                    GlassCard(cornerRadius: AppConstants.largeCornerRadius) {
-                        VStack(spacing: 20) {
-                            formTextField("Nome completo", text: $name, icon: "person.fill")
+                    // Form glass card
+                    VStack(spacing: 0) {
 
-                            Divider()
-
-                            HStack {
-                                Label("Idade", systemImage: "birthday.cake.fill")
-                                    .foregroundStyle(AppColors.text)
-                                    .font(.system(size: 15))
-                                Spacer()
-                                Stepper("\(age) anos", value: $age, in: 10...100)
-                                    .font(.system(size: 15))
+                        // Nome
+                        formRow {
+                            HStack(spacing: 10) {
+                                Image(systemName: "person.fill")
+                                    .foregroundStyle(AppColors.primary)
+                                    .frame(width: 22)
+                                TextField("Seu nome", text: $name)
+                                    .font(.system(size: 15, weight: .medium))
                             }
+                        }
 
-                            Divider()
+                        rowDivider
 
+                        // Idade
+                        formRow {
+                            HStack {
+                                Image(systemName: "calendar")
+                                    .foregroundStyle(AppColors.primary)
+                                    .frame(width: 22)
+                                Text("Idade")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(AppColors.text)
+                                Spacer()
+                                HStack(spacing: 0) {
+                                    Button { if age > 10 { age -= 1 } } label: {
+                                        Text("−")
+                                            .font(.system(size: 20, weight: .bold))
+                                            .foregroundStyle(AppColors.primary)
+                                            .frame(width: 36, height: 32)
+                                    }
+                                    Text("\(age) anos")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(AppColors.text)
+                                        .frame(minWidth: 64, alignment: .center)
+                                    Button { if age < 100 { age += 1 } } label: {
+                                        Text("+")
+                                            .font(.system(size: 20, weight: .bold))
+                                            .foregroundStyle(AppColors.primary)
+                                            .frame(width: 36, height: 32)
+                                    }
+                                }
+                                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
+
+                        rowDivider
+
+                        // Gênero
+                        formRow {
                             Picker("Gênero", selection: $gender) {
                                 ForEach(Gender.allCases, id: \.self) { g in
                                     Text(g.displayName).tag(g)
                                 }
                             }
                             .pickerStyle(.segmented)
+                        }
 
-                            Divider()
+                        rowDivider
 
-                            formNumericRow("Peso atual",  value: $weightKg, unit: "kg", icon: "scalemass.fill")
-                            formNumericRow("Peso alvo",   value: $targetKg,  unit: "kg", icon: "target")
-                            formNumericRow("Altura",      value: $heightCm,  unit: "cm", icon: "ruler.fill")
+                        // Peso e Meta — grade 2 colunas
+                        formRow {
+                            HStack(spacing: 12) {
+                                metricCell(label: "⚖️ Peso Atual", value: $weightKg, unit: "kg")
+                                metricCell(label: "🎯 Meta",        value: $targetKg,  unit: "kg")
+                            }
+                        }
 
-                            Divider()
+                        rowDivider
 
-                            VStack(alignment: .leading, spacing: 8) {
-                                Label("Nível de atividade", systemImage: "figure.run")
-                                    .font(.system(size: 15))
+                        // Altura
+                        formRow {
+                            HStack {
+                                Image(systemName: "arrow.up.arrow.down")
+                                    .foregroundStyle(AppColors.primary)
+                                    .frame(width: 22)
+                                Text("Altura")
+                                    .font(.system(size: 15, weight: .medium))
                                     .foregroundStyle(AppColors.text)
+                                Spacer()
+                                HStack(alignment: .lastTextBaseline, spacing: 4) {
+                                    TextField("170", value: $heightCm, format: .number)
+                                        .keyboardType(.decimalPad)
+                                        .multilineTextAlignment(.trailing)
+                                        .frame(width: 52)
+                                        .font(.system(size: 16, weight: .bold))
+                                    Text("cm")
+                                        .font(.system(size: 13))
+                                        .foregroundStyle(AppColors.textSecondary)
+                                }
+                            }
+                        }
 
+                        rowDivider
+
+                        // Nível de Atividade
+                        formRow {
+                            HStack {
+                                Image(systemName: "flame.fill")
+                                    .foregroundStyle(AppColors.primary)
+                                    .frame(width: 22)
+                                Text("Nível de Atividade")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(AppColors.text)
+                                Spacer()
                                 Picker("", selection: $activity) {
                                     ForEach(ActivityLevel.allCases, id: \.self) { level in
                                         Text(level.displayName).tag(level)
@@ -81,15 +154,53 @@ struct UserSetupView: View {
                                 }
                                 .pickerStyle(.menu)
                                 .tint(AppColors.primary)
+                                .font(.system(size: 14, weight: .bold))
                             }
+                        }
 
-                            Divider()
+                        rowDivider
 
-                            VStack(alignment: .leading, spacing: 8) {
-                                Label("Objetivo", systemImage: "flag.fill")
-                                    .font(.system(size: 15))
+                        // Meta de Hidratação
+                        formRow {
+                            HStack {
+                                Image(systemName: "drop.fill")
+                                    .foregroundStyle(Color.blue)
+                                    .frame(width: 22)
+                                Text("Meta de Hidratação")
+                                    .font(.system(size: 15, weight: .medium))
                                     .foregroundStyle(AppColors.text)
+                                Spacer()
+                                HStack(spacing: 0) {
+                                    Button { if waterLiters > 1.0 { waterLiters = (waterLiters - 0.5 * 2).rounded() / 2 } } label: {
+                                        Text("−")
+                                            .font(.system(size: 20, weight: .bold))
+                                            .foregroundStyle(Color.blue)
+                                            .frame(width: 36, height: 32)
+                                    }
+                                    Text(String(format: "%.1f L", waterLiters))
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(AppColors.text)
+                                        .frame(minWidth: 60, alignment: .center)
+                                    Button { if waterLiters < 6.0 { waterLiters = (waterLiters * 2 + 1).rounded() / 2 } } label: {
+                                        Text("+")
+                                            .font(.system(size: 20, weight: .bold))
+                                            .foregroundStyle(Color.blue)
+                                            .frame(width: 36, height: 32)
+                                    }
+                                }
+                                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
 
+                        rowDivider
+
+                        // Objetivo
+                        formRow {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("OBJETIVO")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(AppColors.textSecondary)
+                                    .tracking(1)
                                 Picker("", selection: $goal) {
                                     ForEach(HealthGoal.allCases, id: \.self) { g in
                                         Text(g.displayName).tag(g)
@@ -98,113 +209,151 @@ struct UserSetupView: View {
                                 .pickerStyle(.segmented)
                             }
                         }
-                        .padding(20)
                     }
+                    .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .shadow(color: .black.opacity(0.06), radius: 12, y: 4)
                     .padding(.horizontal, 16)
 
-                    // Resultado do TDEE
+                    // Resultado TDEE
                     if showResult, let r = tdeeResult {
                         tdeeResultCard(r)
                             .padding(.horizontal, 16)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
 
-                    // Botões
+                    // Botão
                     VStack(spacing: 12) {
                         if showResult && tdeeResult != nil {
-                            PrimaryButton(title: "Salvar e começar", icon: "checkmark.circle.fill") {
-                                saveProfile()
-                            }
+                            saveButton
                         } else {
-                            PrimaryButton(title: "Calcular minhas metas", icon: "sparkles") {
-                                calculate()
-                            }
+                            calculateButton
                         }
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 40)
                 }
             }
-            .background(AppColors.background.ignoresSafeArea())
+            .background(Color(.systemGray6).ignoresSafeArea())
             .navigationBarHidden(true)
         }
     }
 
-    // MARK: – Subviews
+    // MARK: - Subviews
 
-    private func formTextField(_ label: String, text: Binding<String>, icon: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .foregroundStyle(AppColors.primary)
-                .frame(width: 20)
-            TextField(label, text: text)
-                .font(.system(size: 15))
-        }
+    private var rowDivider: some View {
+        Divider().padding(.leading, 48)
     }
 
-    private func formNumericRow(_ label: String, value: Binding<Double>, unit: String, icon: String) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .foregroundStyle(AppColors.primary)
-                .frame(width: 20)
+    private func formRow<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+    }
+
+    private func metricCell(label: String, value: Binding<Double>, unit: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
             Text(label)
-                .font(.system(size: 15))
-                .foregroundStyle(AppColors.text)
-            Spacer()
-            TextField("0", value: value, format: .number)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .frame(width: 60)
-            Text(unit)
-                .font(.system(size: 14))
+                .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(AppColors.textSecondary)
-        }
-    }
-
-    private func tdeeResultCard(_ r: TDEEResult) -> some View {
-        GlassCard(cornerRadius: AppConstants.largeCornerRadius) {
-            VStack(spacing: 16) {
-                Text("Suas metas diárias")
-                    .font(.system(size: 16, weight: .semibold))
+                .tracking(0.5)
+            HStack {
+                TextField("0", value: value, format: .number)
+                    .keyboardType(.decimalPad)
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(AppColors.text)
-
-                HStack(spacing: 0) {
-                    tdeeMetric("Calorias", value: "\(Int(r.targetCalories))", unit: "kcal", color: AppColors.accent)
-                    Divider().frame(height: 50)
-                    tdeeMetric("Proteína", value: "\(Int(r.proteinGoal))", unit: "g", color: AppColors.protein)
-                    Divider().frame(height: 50)
-                    tdeeMetric("Carbs",    value: "\(Int(r.carbsGoal))",   unit: "g", color: AppColors.carbs)
-                    Divider().frame(height: 50)
-                    tdeeMetric("Gordura",  value: "\(Int(r.fatGoal))",     unit: "g", color: AppColors.fat)
-                }
-
-                Text("Baseado na fórmula Mifflin-St Jeor com fator de atividade \(String(format: "×%.2f", r.tdee / r.bmr))")
-                    .font(.caption2)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(20)
-        }
-    }
-
-    private func tdeeMetric(_ label: String, value: String, unit: String, color: Color) -> some View {
-        VStack(spacing: 4) {
-            HStack(alignment: .lastTextBaseline, spacing: 2) {
-                Text(value)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(color)
+                Spacer()
                 Text(unit)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundStyle(AppColors.textSecondary)
             }
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(AppColors.textSecondary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
         }
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: – Logic
+    private func tdeeResultCard(_ r: TDEEResult) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("SUAS METAS DIÁRIAS")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(AppColors.textSecondary)
+                .tracking(1)
+                .padding(.horizontal, 4)
+
+            HStack(spacing: 8) {
+                tdeeCell(value: "\(Int(r.targetCalories))", unit: "kcal", color: AppColors.text)
+                tdeeCell(value: "\(Int(r.proteinGoal))g", unit: "P", color: AppColors.protein, accent: true)
+                tdeeCell(value: "\(Int(r.carbsGoal))g",   unit: "C", color: AppColors.carbs,   accent: true)
+                tdeeCell(value: "\(Int(r.fatGoal))g",     unit: "G", color: AppColors.fat,     accent: true)
+                tdeeCell(value: String(format: "%.1fL", waterLiters), unit: "Água", color: Color.blue, accent: true)
+            }
+        }
+    }
+
+    private func tdeeCell(value: String, unit: String, color: Color, accent: Bool = false) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(color)
+            Text(unit)
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(AppColors.textSecondary)
+                .tracking(0.5)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background(.white, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(alignment: .bottom) {
+            if accent {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(color)
+                    .frame(height: 3)
+                    .padding(.horizontal, 12)
+                    .offset(y: -1)
+            }
+        }
+        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+    }
+
+    private var calculateButton: some View {
+        Button {
+            calculate()
+        } label: {
+            HStack(spacing: 8) {
+                Text("Calcular minhas metas")
+                    .font(.system(size: 18, weight: .bold))
+                Image(systemName: "sparkles")
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(AppColors.primary)
+            .foregroundStyle(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: AppColors.primary.opacity(0.35), radius: 12, y: 4)
+        }
+    }
+
+    private var saveButton: some View {
+        Button {
+            saveProfile()
+        } label: {
+            HStack(spacing: 8) {
+                Text("Salvar e começar")
+                    .font(.system(size: 18, weight: .bold))
+                Image(systemName: "checkmark")
+                    .font(.system(size: 16, weight: .bold))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(AppColors.primary)
+            .foregroundStyle(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: AppColors.primary.opacity(0.35), radius: 12, y: 4)
+        }
+    }
+
+    // MARK: - Logic
 
     private func calculate() {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }

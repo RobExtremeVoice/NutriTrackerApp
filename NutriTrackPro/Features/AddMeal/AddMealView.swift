@@ -166,27 +166,50 @@ struct AddMealView: View {
 
     private var cameraPlaceholder: some View {
         GlassCard(cornerRadius: AppConstants.largeCornerRadius) {
-            VStack(spacing: 16) {
-                Image(systemName: "camera.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(AppColors.primary.opacity(0.6))
-                Text("Fotografe sua refeição")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(AppColors.text)
-                Text("A IA identifica os alimentos e calcula os nutrientes automaticamente")
-                    .font(.subheadline)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
+            VStack(spacing: 20) {
+                // Ícone circular
+                ZStack {
+                    Circle()
+                        .fill(AppColors.primary.opacity(0.1))
+                        .frame(width: 88, height: 88)
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 38, weight: .medium))
+                        .foregroundStyle(AppColors.primary.opacity(0.65))
+                }
 
-                PrimaryButton(title: "Abrir câmera", icon: "camera.fill") {
+                // Texto
+                VStack(spacing: 6) {
+                    Text("Fotografe sua refeição")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(AppColors.text)
+                    Text("A IA identifica os alimentos e calcula os nutrientes automaticamente")
+                        .font(.system(size: 15))
+                        .foregroundStyle(AppColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                // Botão
+                Button {
                     guard appState.canUsePhotoScan() else {
                         appState.showPaywall = true
                         return
                     }
                     showCamera = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Text("Abrir câmera")
+                            .font(.system(size: 16, weight: .bold))
+                        Image(systemName: "camera.fill")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(AppColors.primary)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .shadow(color: AppColors.primary.opacity(0.3), radius: 10, y: 4)
                 }
             }
-            .padding(32)
+            .padding(28)
         }
         .padding(.horizontal)
     }

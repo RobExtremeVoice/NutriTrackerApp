@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// Tela principal — mostra ring de calorias, macros, água e refeições do dia.
+/// Tela principal — ring de calorias, macros, água e refeições do dia.
 struct HomeView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
@@ -22,7 +22,9 @@ struct HomeView: View {
     }
 
     private var goalNutrition: NutritionInfo {
-        guard let p = profile else { return NutritionInfo(calories: 2000, protein: 120, carbs: 225, fat: 65, fiber: 30) }
+        guard let p = profile else {
+            return NutritionInfo(calories: 2000, protein: 120, carbs: 225, fat: 65, fiber: 30)
+        }
         return NutritionInfo(
             calories: p.dailyCalorieGoal,
             protein:  p.dailyProteinGoal,
@@ -48,7 +50,6 @@ struct HomeView: View {
         return formatter.string(from: .now).capitalized
     }
 
-    // Refeições agrupadas por tipo
     private var mealsByType: [(MealType, [Meal])] {
         MealType.allCases.compactMap { type in
             let meals = todayMeals.filter { $0.type == type.rawValue }
@@ -60,26 +61,24 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    // Header
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("\(greeting), \(profile?.firstName ?? "usuário") 👋")
-                            .font(.title2.weight(.bold))
-                            .foregroundStyle(AppColors.text)
-                        Text(todayDateText)
-                            .font(.subheadline)
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
 
-                    // Streak badge
-                    if let p = profile, p.streakDays > 0 {
-                        HStack {
-                            StreakBadge(days: p.streakDays)
-                            Spacer()
+                    // Header: saudação + streak inline
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("\(greeting), \(profile?.firstName ?? "usuário") 👋")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundStyle(AppColors.text)
+                            Text(todayDateText)
+                                .font(.system(size: 14))
+                                .foregroundStyle(AppColors.textSecondary)
                         }
-                        .padding(.horizontal, 16)
+                        Spacer()
+                        if let p = profile, p.streakDays > 0 {
+                            StreakBadge(days: p.streakDays)
+                        }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 4)
 
                     // Calorie Ring
                     GlassCard(cornerRadius: AppConstants.largeCornerRadius) {
@@ -102,14 +101,24 @@ struct HomeView: View {
                     WaterTrackerView(goal: profile?.dailyWaterGoal ?? 8)
                         .padding(.horizontal, 16)
 
-                    // Refeições do dia
-                    if !todayMeals.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
+                    // Refeições
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
                             Text("Refeições de hoje")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(.system(size: 18, weight: .bold))
                                 .foregroundStyle(AppColors.text)
-                                .padding(.horizontal, 16)
+                            Spacer()
+                            if !todayMeals.isEmpty {
+                                Button("Ver todas") {}
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(AppColors.primary)
+                            }
+                        }
+                        .padding(.horizontal, 16)
 
+                        if todayMeals.isEmpty {
+                            emptyStateView
+                        } else {
                             ForEach(mealsByType, id: \.0) { type, meals in
                                 VStack(alignment: .leading, spacing: 0) {
                                     Text(type.emoji + " " + type.displayName)
@@ -132,23 +141,29 @@ struct HomeView: View {
                                 }
                             }
                         }
-                    } else {
-                        emptyStateView
                     }
 
-                    Spacer(minLength: 80) // espaço para FAB
+                    Spacer(minLength: 80)
                 }
                 .padding(.top, 8)
             }
-            .background(AppColors.background.ignoresSafeArea())
+            .background(Color(.systemGray6).ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("NutriTrack Pro")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(AppColors.text)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showAddMeal = true
                     } label: {
                         Image(systemName: "camera.fill")
                             .foregroundStyle(AppColors.primary)
+                            .frame(width: 36, height: 36)
+                            .background(.white, in: Circle())
+                            .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
                     }
                 }
             }
