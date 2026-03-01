@@ -1,45 +1,85 @@
 import SwiftUI
 
-/// 3 slides de introdução com TabView page style.
+/// Onboarding com 4 slides, fundo gradiente escuro, logo e botão verde.
 struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var showUserSetup = false
 
     private let slides: [OnboardingSlideData] = [
         OnboardingSlideData(
-            emoji: "📸",
+            iconName: "camera.fill",
             title: "Fotografe sua refeição",
             subtitle: "Tire uma foto de qualquer refeição e deixe a inteligência artificial fazer o resto.",
-            backgroundColor: AppColors.background
+            backgroundColors: [
+                Color(red: 0.06, green: 0.28, blue: 0.14),
+                Color(red: 0.02, green: 0.10, blue: 0.06)
+            ]
         ),
         OnboardingSlideData(
-            emoji: "✨",
+            iconName: "sparkles",
             title: "IA identifica os nutrientes",
-            subtitle: "O GPT-4o analisa cada alimento e calcula calorias, proteínas, carboidratos e gorduras automaticamente.",
-            backgroundColor: AppColors.background
+            subtitle: "O AI analisa cada alimento e calcula calorias, proteínas, carboidratos e gorduras automaticamente.",
+            backgroundColors: [
+                Color(red: 0.30, green: 0.14, blue: 0.04),
+                Color(red: 0.12, green: 0.06, blue: 0.01)
+            ]
         ),
         OnboardingSlideData(
-            emoji: "🎯",
+            iconName: "scope",
             title: "Atinja seus objetivos",
-            subtitle: "Acompanhe seu progresso diário, mantenha sua sequência e alcance suas metas de saúde.",
-            backgroundColor: AppColors.background
+            subtitle: "Acompanhe seu progresso diário e alcance suas metas de saúde com precisão.",
+            backgroundColors: [
+                Color(red: 0.06, green: 0.10, blue: 0.32),
+                Color(red: 0.02, green: 0.04, blue: 0.15)
+            ]
+        ),
+        OnboardingSlideData(
+            iconName: "drop.fill",
+            title: "Mantenha-se hidratado",
+            subtitle: "Ajudamos você a ficar hidratado todos os dias com alertas inteligentes e acompanhamento em tempo real.",
+            backgroundColors: [
+                Color(red: 0.04, green: 0.20, blue: 0.36),
+                Color(red: 0.02, green: 0.08, blue: 0.18)
+            ]
         ),
     ]
 
     var body: some View {
         ZStack {
-            AppColors.background.ignoresSafeArea()
+            // Fundo gradiente animado conforme o slide
+            LinearGradient(
+                colors: slides[currentPage].backgroundColors,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            .animation(.easeInOut(duration: 0.5), value: currentPage)
+
+            // Overlay escuro para legibilidade
+            LinearGradient(
+                colors: [Color.black.opacity(0.25), Color.black.opacity(0.65)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Logo
-                HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "leaf.fill")
+                        .font(.system(size: 26, weight: .semibold))
                         .foregroundStyle(AppColors.primary)
-                    Text("NutriTrack Pro")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(AppColors.text)
+
+                    HStack(spacing: 0) {
+                        Text("NutriTrack ")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(.white)
+                        Text("Pro")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(AppColors.primary)
+                    }
                 }
-                .padding(.top, 56)
+                .padding(.top, 60)
 
                 // Slides
                 TabView(selection: $currentPage) {
@@ -49,39 +89,42 @@ struct OnboardingView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(.easeInOut, value: currentPage)
 
                 // Page dots
                 HStack(spacing: 8) {
                     ForEach(0..<slides.count, id: \.self) { i in
                         Capsule()
-                            .fill(i == currentPage ? AppColors.primary : AppColors.primary.opacity(0.2))
-                            .frame(width: i == currentPage ? 20 : 8, height: 8)
+                            .fill(i == currentPage ? AppColors.primary : .white.opacity(0.35))
+                            .frame(width: i == currentPage ? 24 : 8, height: 8)
                             .animation(.spring(duration: 0.3), value: currentPage)
                     }
                 }
                 .padding(.bottom, 24)
 
-                // Botões
-                VStack(spacing: 12) {
+                // Botão principal
+                Button {
                     if currentPage == slides.count - 1 {
-                        PrimaryButton(title: "Começar agora", icon: "arrow.right") {
-                            showUserSetup = true
-                        }
+                        showUserSetup = true
                     } else {
-                        PrimaryButton(title: "Próximo") {
-                            withAnimation { currentPage += 1 }
-                        }
-
-                        Button("Pular") {
-                            withAnimation { currentPage = slides.count - 1 }
-                        }
-                        .font(.system(size: 14))
-                        .foregroundStyle(AppColors.textSecondary)
+                        withAnimation { currentPage += 1 }
                     }
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(currentPage == slides.count - 1 ? "Começar agora" : "Próximo")
+                            .font(.system(size: 18, weight: .bold))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 16, weight: .bold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(AppColors.primary)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: AppColors.primary.opacity(0.35), radius: 12, y: 4)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 48)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 52)
+                .animation(.easeInOut(duration: 0.2), value: currentPage)
             }
         }
         .fullScreenCover(isPresented: $showUserSetup) {

@@ -2,13 +2,13 @@ import SwiftUI
 
 struct OnboardingSlideData: Identifiable {
     let id = UUID()
-    let emoji: String
+    let iconName: String
     let title: String
     let subtitle: String
-    let backgroundColor: Color
+    let backgroundColors: [Color]
 }
 
-/// Slide de onboarding com emoji animado e textos.
+/// Conteúdo de cada slide: ícone em glass card + título + subtítulo.
 struct OnboardingSlideView: View {
     let data: OnboardingSlideData
     @State private var appeared = false
@@ -17,26 +17,37 @@ struct OnboardingSlideView: View {
         VStack(spacing: 32) {
             Spacer()
 
-            // Emoji principal com bounce
-            Text(data.emoji)
-                .font(.system(size: 100))
-                .scaleEffect(appeared ? 1 : 0.5)
-                .opacity(appeared ? 1 : 0)
-                .animation(.spring(duration: 0.7, bounce: 0.4), value: appeared)
+            // Ícone em glass card
+            ZStack {
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(.white.opacity(0.12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(AppColors.primary.opacity(0.4), lineWidth: 1)
+                    )
+
+                Image(systemName: data.iconName)
+                    .font(.system(size: 48, weight: .light))
+                    .foregroundStyle(.white.opacity(0.92))
+            }
+            .frame(width: 100, height: 100)
+            .scaleEffect(appeared ? 1 : 0.7)
+            .opacity(appeared ? 1 : 0)
+            .animation(.spring(duration: 0.7, bounce: 0.3), value: appeared)
 
             // Textos
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 Text(data.title)
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(AppColors.text)
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .offset(y: appeared ? 0 : 20)
                     .opacity(appeared ? 1 : 0)
                     .animation(.easeOut(duration: 0.5).delay(0.2), value: appeared)
 
                 Text(data.subtitle)
-                    .font(.system(size: 16))
-                    .foregroundStyle(AppColors.textSecondary)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.88))
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
                     .offset(y: appeared ? 0 : 20)
@@ -48,11 +59,7 @@ struct OnboardingSlideView: View {
             Spacer()
             Spacer()
         }
-        .onAppear {
-            withAnimation { appeared = true }
-        }
-        .onDisappear {
-            appeared = false
-        }
+        .onAppear { withAnimation { appeared = true } }
+        .onDisappear { appeared = false }
     }
 }
