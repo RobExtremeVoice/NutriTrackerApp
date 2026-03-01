@@ -10,6 +10,11 @@ final class AppState {
     // MARK: – Paywall gate
     var showPaywall: Bool = false
 
+    // MARK: – In-app alert sheets
+    var showHydrationAlert:  Bool     = false
+    var showMealReminder:    Bool     = false
+    var mealReminderType:    MealType = .lunch
+
     // MARK: – Selected date (Diary / Home)
     var selectedDate: Date = .now
 

@@ -381,7 +381,8 @@ struct UserSetupView: View {
             dailyProteinGoal: r.proteinGoal,
             dailyCarbsGoal: r.carbsGoal,
             dailyFatGoal: r.fatGoal,
-            dailyFiberGoal: r.fiberGoal
+            dailyFiberGoal: r.fiberGoal,
+            dailyWaterGoal: Int(waterLiters * 1000)
         )
         modelContext.insert(profile)
         hasCompletedOnboarding = true

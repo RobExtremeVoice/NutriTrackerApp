@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -21,6 +21,7 @@
 		2B190C2FB3917C1ECFF656D0 /* UserSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAC7271D30114F04DCF33BD /* UserSetupView.swift */; };
 		2F9752A98500D2342D29FA2A /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8749BB677003032A0698BCE5 /* AppColors.swift */; };
 		3A92C332D773ED1619012998 /* FoodVisionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4065B4DEB0BD80085142ECC2 /* FoodVisionService.swift */; };
+		3C20C7C5B2B19576103E3194 /* MealReminderAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85DF29898FC3D9B6A49D4A9 /* MealReminderAlertView.swift */; };
 		402A1556BA8D43D35CFF4F22 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76A4D9AD1F5EFB98FB4BDB0 /* ContentView.swift */; };
 		4095B394013BDF1F8A6FFEFB /* MealTypeSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7767ABF83A3018E342E4646 /* MealTypeSelector.swift */; };
 		4C3BC4232CF26BDFF38FE52E /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EEB94EE7461543D575EFBCF /* ProfileView.swift */; };
@@ -38,10 +39,12 @@
 		80594EBB3EC58C645B7C4F7A /* SubscriptionPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BA1EB10178DCDE9B53E790 /* SubscriptionPlan.swift */; };
 		83B5D015B5A79B83F822DBF6 /* FoodItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B00F9964A4A798BA11DFBA2 /* FoodItem.swift */; };
 		8769ED72241D0DE1AEBBDB3A /* WaterEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DECB67F0CA51DB1C1EAC790 /* WaterEntry.swift */; };
+		92D681AB2B351DAA8525725E /* HydrationAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0714F3F40C3D1400896F0F7F /* HydrationAlertView.swift */; };
 		96EFBACE6247B5C03605454C /* DayLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F48706C8F8E29468191D6912 /* DayLogView.swift */; };
 		997AAFC81630FFC7F157C0C4 /* OnboardingSlide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A0A2607A1C08FFA4AA3CDF /* OnboardingSlide.swift */; };
 		99FBC3F9F32F9AB68906A198 /* WeekCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884AD486A6797996998A7B35 /* WeekCalendarView.swift */; };
 		9F2901C830C17F0E81CD2E33 /* StatsCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFBA8D1EE3496617222E65F9 /* StatsCardView.swift */; };
+		B017655CDEF4873C6C94B0F5 /* WaterLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568A10F422D5F4F2C607F30F /* WaterLogView.swift */; };
 		B8D9CD4B40325D98605F0A7B /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2993D16418611C8B74427F46 /* PaywallView.swift */; };
 		B9E324F4B1766A4578A7EE4A /* WaterTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73DEE93EF5AB58ECB68A7788 /* WaterTrackerView.swift */; };
 		BCF934EA3BDEEB215A79FCD3 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE9F84F361D842A7F8887D7 /* NotificationService.swift */; };
@@ -63,6 +66,7 @@
 
 /* Begin PBXFileReference section */
 		05673F845E1193B32AFD56F9 /* TypingIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicatorView.swift; sourceTree = "<group>"; };
+		0714F3F40C3D1400896F0F7F /* HydrationAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HydrationAlertView.swift; sourceTree = "<group>"; };
 		0DECB67F0CA51DB1C1EAC790 /* WaterEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterEntry.swift; sourceTree = "<group>"; };
 		0E858B8B1227025993D188DD /* NutritionCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionCalculator.swift; sourceTree = "<group>"; };
 		10E608E78E359269E6C232F5 /* CalorieRingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalorieRingView.swift; sourceTree = "<group>"; };
@@ -74,10 +78,11 @@
 		2993D16418611C8B74427F46 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		2DBD11AB55A01F100CFE7D4A /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		30A07AB50872ADBB413CA38F /* MealRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealRowView.swift; sourceTree = "<group>"; };
-		3C537BD60CD4B5CDC87CE48B /* NutriTrackPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NutriTrackPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C537BD60CD4B5CDC87CE48B /* NutriTrackPro.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NutriTrackPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4065B4DEB0BD80085142ECC2 /* FoodVisionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodVisionService.swift; sourceTree = "<group>"; };
 		4B92C6D93E058624B7B43878 /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
 		51668DD9763ED6999F0ACD07 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		568A10F422D5F4F2C607F30F /* WaterLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterLogView.swift; sourceTree = "<group>"; };
 		5E97D050B0D53E09102853E1 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
 		5EEB94EE7461543D575EFBCF /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		68A0A2607A1C08FFA4AA3CDF /* OnboardingSlide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSlide.swift; sourceTree = "<group>"; };
@@ -108,6 +113,7 @@
 		C91B8B5A4B9DD16A7430E85F /* DiaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryView.swift; sourceTree = "<group>"; };
 		CCF6ACC276E37C2E65B13D90 /* MacroBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroBarView.swift; sourceTree = "<group>"; };
 		CFBA8D1EE3496617222E65F9 /* StatsCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsCardView.swift; sourceTree = "<group>"; };
+		D85DF29898FC3D9B6A49D4A9 /* MealReminderAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealReminderAlertView.swift; sourceTree = "<group>"; };
 		DAAC7271D30114F04DCF33BD /* UserSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSetupView.swift; sourceTree = "<group>"; };
 		DFDDDC51BFD5CEF983F3A82A /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		EA5DC7DD04744DEB47DC9E1D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -134,8 +140,10 @@
 			children = (
 				10E608E78E359269E6C232F5 /* CalorieRingView.swift */,
 				A5CD1336828E0D747FF1DBA2 /* HomeView.swift */,
+				0714F3F40C3D1400896F0F7F /* HydrationAlertView.swift */,
 				CCF6ACC276E37C2E65B13D90 /* MacroBarView.swift */,
 				30A07AB50872ADBB413CA38F /* MealRowView.swift */,
+				568A10F422D5F4F2C607F30F /* WaterLogView.swift */,
 				73DEE93EF5AB58ECB68A7788 /* WaterTrackerView.swift */,
 			);
 			path = Dashboard;
@@ -228,6 +236,7 @@
 				8BEF31174DE2037D35B976D9 /* CameraView.swift */,
 				F5B1C9A26F16B8B1DC662C8D /* FoodAnalysisView.swift */,
 				ACAD8C3CAB1B2E18CC471A6F /* FoodItemEditView.swift */,
+				D85DF29898FC3D9B6A49D4A9 /* MealReminderAlertView.swift */,
 			);
 			path = AddMeal;
 			sourceTree = "<group>";
@@ -340,6 +349,7 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					8C5C031A6CD7A90171D3787F = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -354,6 +364,7 @@
 			);
 			mainGroup = 2EDE110229429D89509D2CB7;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -401,8 +412,10 @@
 				1778316B959C00C888023B41 /* HealthKitService.swift in Sources */,
 				630D0BB1999B6FF2BD90F1A0 /* HealthKitView.swift in Sources */,
 				2AAF1579DFCB30DE41311696 /* HomeView.swift in Sources */,
+				92D681AB2B351DAA8525725E /* HydrationAlertView.swift in Sources */,
 				76902DD1022D130015C601AF /* MacroBarView.swift in Sources */,
 				EDE99D8FF3A73E4356BD6449 /* Meal.swift in Sources */,
+				3C20C7C5B2B19576103E3194 /* MealReminderAlertView.swift in Sources */,
 				E8A61B08D64D68367CB61B9B /* MealRowView.swift in Sources */,
 				4095B394013BDF1F8A6FFEFB /* MealTypeSelector.swift in Sources */,
 				CDD06C202FC79BE811CF8142 /* MessageBubbleView.swift in Sources */,
@@ -425,6 +438,7 @@
 				6AC5298FB1A529097F69592E /* UserProfile.swift in Sources */,
 				2B190C2FB3917C1ECFF656D0 /* UserSetupView.swift in Sources */,
 				8769ED72241D0DE1AEBBDB3A /* WaterEntry.swift in Sources */,
+				B017655CDEF4873C6C94B0F5 /* WaterLogView.swift in Sources */,
 				B9E324F4B1766A4578A7EE4A /* WaterTrackerView.swift in Sources */,
 				99FBC3F9F32F9AB68906A198 /* WeekCalendarView.swift in Sources */,
 				550769CF7DEE4BCBC4A2D566 /* WeightChartView.swift in Sources */,
@@ -441,7 +455,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = NutriTrackPro/NutriTrackPro.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = X94U48J679;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = NutriTrackPro/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -528,7 +541,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = NutriTrackPro/NutriTrackPro.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = X94U48J679;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = NutriTrackPro/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

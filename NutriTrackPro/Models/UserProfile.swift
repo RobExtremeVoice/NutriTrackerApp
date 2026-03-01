@@ -108,7 +108,7 @@ final class UserProfile {
         dailyCarbsGoal: Double = 225,
         dailyFatGoal: Double = 65,
         dailyFiberGoal: Double = 30,
-        dailyWaterGoal: Int = 8
+        dailyWaterGoal: Int = 2000
     ) {
         self.name = name
         self.age = age

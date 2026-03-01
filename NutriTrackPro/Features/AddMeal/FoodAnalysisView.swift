@@ -97,12 +97,9 @@ struct FoodAnalysisView: View {
                                         .foregroundStyle(selectedPortion == i ? AppColors.text : AppColors.textSecondary)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 10)
-                                        .background(
-                                            selectedPortion == i
-                                                ? Color.white.shadow(.drop(color: .black.opacity(0.1), radius: 3, y: 1))
-                                                : AnyShapeStyle(Color.clear)
-                                        )
+                                        .background(selectedPortion == i ? Color.white : Color.clear)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        .shadow(color: selectedPortion == i ? .black.opacity(0.1) : .clear, radius: 3, y: 1)
                                 }
                             }
                         }

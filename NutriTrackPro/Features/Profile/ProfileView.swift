@@ -72,6 +72,21 @@ struct ProfileView: View {
                     }
                 }
 
+                // Alertas (preview das notificações in-app)
+                Section("Notificações") {
+                    Button {
+                        appState.showHydrationAlert = true
+                    } label: {
+                        settingsRow(icon: "drop.fill", label: "Preview — Alerta de Hidratação", color: Color(hex: "3B82F6"))
+                    }
+                    Button {
+                        appState.mealReminderType = .lunch
+                        appState.showMealReminder  = true
+                    } label: {
+                        settingsRow(icon: "camera.fill", label: "Preview — Lembrete de Foto", color: AppColors.primary)
+                    }
+                }
+
                 // Suporte
                 Section("Suporte") {
                     settingsLink(icon: "envelope.fill",      label: "Enviar feedback",         color: AppColors.primary)

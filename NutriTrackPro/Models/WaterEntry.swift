@@ -1,16 +1,16 @@
 import Foundation
 import SwiftData
 
-/// Registro de consumo de água (em copos) para uma data.
+/// Registro de consumo de água (em ml) para uma data.
 @Model
 final class WaterEntry {
     var id: UUID
     var date: Date
-    var cups: Int
+    var mlConsumed: Int
 
-    init(date: Date = .now, cups: Int = 1) {
+    init(date: Date = .now, mlConsumed: Int = 0) {
         self.id = UUID()
         self.date = date
-        self.cups = cups
+        self.mlConsumed = mlConsumed
     }
 }
