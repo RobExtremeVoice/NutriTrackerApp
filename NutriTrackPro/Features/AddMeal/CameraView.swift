@@ -147,6 +147,14 @@ final class CameraViewController: UIViewController {
     }
 
     @objc private func capturePhoto() {
+        #if targetEnvironment(simulator)
+        // Simulator has no camera — return a placeholder so the app doesn't crash
+        if let placeholder = UIImage(systemName: "photo.on.rectangle") {
+            delegate?.didCapture(image: placeholder)
+        }
+        return
+        #endif
+        guard output.connections.first != nil else { return }
         let settings = AVCapturePhotoSettings()
         settings.flashMode = flashMode
         output.capturePhoto(with: settings, delegate: self)
