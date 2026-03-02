@@ -65,6 +65,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B3FB4BC57E8B48C39889B31D /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		05673F845E1193B32AFD56F9 /* TypingIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicatorView.swift; sourceTree = "<group>"; };
 		0714F3F40C3D1400896F0F7F /* HydrationAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HydrationAlertView.swift; sourceTree = "<group>"; };
 		0DECB67F0CA51DB1C1EAC790 /* WaterEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterEntry.swift; sourceTree = "<group>"; };
@@ -449,6 +450,7 @@
 /* Begin XCBuildConfiguration section */
 		31F60EDB64D30DDA4DBB2AD1 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B3FB4BC57E8B48C39889B31D /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = NutriTrackPro/NutriTrackPro.entitlements;
@@ -465,7 +467,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				xcconfig = Config.xcconfig;
 			};
 			name = Release;
 		};
@@ -536,6 +537,7 @@
 		};
 		6EA1CC3AC9508011AC3C3BEB /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B3FB4BC57E8B48C39889B31D /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = NutriTrackPro/NutriTrackPro.entitlements;
@@ -552,7 +554,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				xcconfig = Config.xcconfig;
 			};
 			name = Debug;
 		};
