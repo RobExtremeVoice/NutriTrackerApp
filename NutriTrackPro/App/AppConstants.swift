@@ -4,7 +4,14 @@ import Foundation
 enum AppConstants {
     // MARK: – OpenAI
     static var openAIKey: String {
-        Bundle.main.infoDictionary?["OPENAI_API_KEY"] as? String ?? ""
+        get {
+            let stored = UserDefaults.standard.string(forKey: "openai_api_key") ?? ""
+            if !stored.isEmpty { return stored }
+            return Bundle.main.infoDictionary?["OPENAI_API_KEY"] as? String ?? ""
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "openai_api_key")
+        }
     }
     static let openAIEndpoint = "https://api.openai.com/v1/chat/completions"
     static let visionModel    = "gpt-4o"

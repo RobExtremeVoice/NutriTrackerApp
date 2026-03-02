@@ -8,6 +8,7 @@ struct ProfileView: View {
 
     @State private var showEditProfile = false
     @State private var showPaywall     = false
+    @State private var showAPIKeySheet = false
     @State private var notificationsOn = UserDefaults.standard.bool(forKey: "notificationsEnabled")
 
     private var profile: UserProfile? { profiles.first }
@@ -47,6 +48,9 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
+            }
+            .sheet(isPresented: $showAPIKeySheet) {
+                APIKeySheet()
             }
         }
     }
@@ -284,6 +288,22 @@ struct ProfileView: View {
 
     private var supportSection: some View {
         VStack(alignment: .leading, spacing: 8) {
+            sectionHeader("Configurações")
+            GlassCard {
+                VStack(spacing: 0) {
+                    // OpenAI API Key
+                    profileRow(
+                        icon: "key.fill",
+                        label: "Chave API OpenAI",
+                        subtitle: AppConstants.openAIKey.isEmpty ? "Não configurada" : "Configurada ✓",
+                        color: AppConstants.openAIKey.isEmpty ? AppColors.accent : AppColors.primary,
+                        showChevron: true
+                    ) { showAPIKeySheet = true }
+
+                    rowDivider
+                }
+            }
+
             sectionHeader("Suporte")
             GlassCard {
                 VStack(spacing: 0) {
@@ -387,6 +407,131 @@ struct ProfileView: View {
 
     private var rowDivider: some View {
         Divider().padding(.leading, 64)
+    }
+}
+
+// MARK: – API Key Sheet
+
+private struct APIKeySheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var keyText = AppConstants.openAIKey
+    @State private var isSaved = false
+
+    private var isValid: Bool {
+        keyText.trimmingCharacters(in: .whitespaces).hasPrefix("sk-")
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Info card
+                    HStack(spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(AppColors.primary.opacity(0.1))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "key.fill")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundStyle(AppColors.primary)
+                        }
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Chave API OpenAI")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(AppColors.text)
+                            Text("Necessária para Chat IA e análise de fotos")
+                                .font(.system(size: 12))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+                    .padding(16)
+                    .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Cole sua chave abaixo")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary)
+                            .padding(.leading, 4)
+
+                        SecureField("sk-...", text: $keyText)
+                            .font(.system(size: 14, design: .monospaced))
+                            .padding(14)
+                            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(isValid ? AppColors.primary.opacity(0.4) : Color(.systemGray4), lineWidth: 1)
+                            )
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                    }
+
+                    if !keyText.isEmpty && !isValid {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 12))
+                            Text("A chave deve começar com \"sk-\"")
+                                .font(.system(size: 12))
+                        }
+                        .foregroundStyle(AppColors.accent)
+                    }
+
+                    Button {
+                        let trimmed = keyText.trimmingCharacters(in: .whitespaces)
+                        AppConstants.openAIKey = trimmed
+                        isSaved = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { dismiss() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isSaved {
+                                Label("Salvo!", systemImage: "checkmark.circle.fill")
+                            } else {
+                                Text("Salvar chave")
+                            }
+                            Spacer()
+                        }
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 14)
+                        .background(
+                            isValid ? AppColors.primary : Color(.systemGray4),
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        )
+                    }
+                    .disabled(!isValid || isSaved)
+                    .animation(.easeInOut(duration: 0.2), value: isSaved)
+
+                    if !keyText.isEmpty {
+                        Button {
+                            keyText = ""
+                            AppConstants.openAIKey = ""
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text("Remover chave")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(AppColors.accent)
+                                Spacer()
+                            }
+                        }
+                    }
+
+                    Spacer(minLength: 20)
+                }
+                .padding(20)
+            }
+            .background(Color(.systemBackground).ignoresSafeArea())
+            .navigationTitle("API OpenAI")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Fechar") { dismiss() }
+                        .font(.system(size: 15, weight: .medium))
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }
 
