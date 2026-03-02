@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Card de estatística com ícone, valor e label.
+/// Card de estatística com ícone colorido, valor grande e labels.
 struct StatsCardView: View {
     let icon: String
     let label: String
@@ -10,21 +10,28 @@ struct StatsCardView: View {
 
     var body: some View {
         GlassCard {
-            VStack(alignment: .leading, spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundStyle(color)
+            VStack(alignment: .leading, spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.12))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: icon)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(color)
+                }
 
                 Text(value)
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.text)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(label)
-                        .font(.caption.weight(.medium))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(AppColors.text)
                     Text(subtitle)
-                        .font(.caption2)
+                        .font(.system(size: 11))
                         .foregroundStyle(AppColors.textSecondary)
                 }
             }

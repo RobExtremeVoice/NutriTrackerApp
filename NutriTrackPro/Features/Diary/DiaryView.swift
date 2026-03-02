@@ -21,96 +21,139 @@ struct DiaryView: View {
         Set(allMeals.map { calendar.startOfDay(for: $0.timestamp) })
     }
 
-    private var weekNavTitle: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "pt_BR")
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: selectedDate).capitalized
+    private var monthTitle: String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "pt_BR")
+        f.dateFormat = "MMMM yyyy"
+        return f.string(from: selectedDate).capitalized
+    }
+
+    private var selectedDateLabel: String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "pt_BR")
+        f.dateFormat = "EEEE, d 'de' MMMM"
+        let str = f.string(from: selectedDate).capitalized
+        return calendar.isDateInToday(selectedDate) ? "Hoje · \(str)" : str
     }
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Navegação de semana
-                weekNavHeader
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(AppColors.surface)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    // Calendar card with integrated month navigation + swipe gesture
+                    calendarCard
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
 
-                // Calendário
-                GlassCard(cornerRadius: 0) {
-                    WeekCalendarView(
-                        selectedDate: $selectedDate,
-                        daysWithMeals: daysWithMeals
-                    )
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                }
+                    // Selected date label + "Hoje" shortcut
+                    HStack {
+                        Text(selectedDateLabel)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary)
+                        Spacer()
+                        if !calendar.isDateInToday(selectedDate) {
+                            Button("Hoje") {
+                                withAnimation(.spring(duration: 0.3)) {
+                                    selectedDate = .now
+                                }
+                            }
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(AppColors.primary)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 14)
+                    .padding(.bottom, 8)
 
-                Divider()
-
-                // Log do dia selecionado
-                ScrollView {
-                    DayLogView(meals: mealsForSelectedDay) { meal in
+                    // Day meals log
+                    DayLogView(
+                        meals: mealsForSelectedDay,
+                        onAddMeal: { showAddMeal = true }
+                    ) { meal in
                         modelContext.delete(meal)
                         UINotificationFeedbackGenerator().notificationOccurred(.warning)
                     }
-                    .padding(16)
-                    Spacer(minLength: 80)
+                    .padding(.horizontal, 16)
+
+                    Spacer(minLength: 100)
                 }
-                .background(AppColors.background)
             }
+            .background(Color(.systemGray6).ignoresSafeArea())
             .navigationTitle("Diário")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showAddMeal = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(AppColors.primary)
-                    }
-                }
-            }
+            .overlay(alignment: .bottomTrailing) { fab }
             .sheet(isPresented: $showAddMeal) {
                 AddMealView()
             }
         }
     }
 
-    private var weekNavHeader: some View {
-        HStack {
-            Button {
-                move(by: -7)
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(AppColors.primary)
-                    .frame(width: 36, height: 36)
-            }
+    // MARK: – Calendar card
 
-            Spacer()
+    private var calendarCard: some View {
+        GlassCard {
+            VStack(spacing: 4) {
+                // Month navigation row
+                HStack {
+                    Button { move(by: -7) } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(AppColors.primary)
+                            .frame(width: 36, height: 36)
+                    }
+                    Spacer()
+                    Text(monthTitle)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(AppColors.text)
+                    Spacer()
+                    Button { move(by: 7) } label: {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(AppColors.primary)
+                            .frame(width: 36, height: 36)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.top, 10)
 
-            Text(weekNavTitle)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(AppColors.text)
-
-            Spacer()
-
-            Button {
-                move(by: 7)
-            } label: {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(AppColors.primary)
-                    .frame(width: 36, height: 36)
+                // Week days
+                WeekCalendarView(
+                    selectedDate: $selectedDate,
+                    daysWithMeals: daysWithMeals
+                )
+                .padding(.horizontal, 4)
+                .padding(.bottom, 8)
             }
         }
+        // Swipe left → next week, swipe right → prev week
+        .gesture(
+            DragGesture(minimumDistance: 40, coordinateSpace: .local)
+                .onEnded { value in
+                    guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                    withAnimation(.spring(duration: 0.3)) {
+                        move(by: value.translation.width < 0 ? 7 : -7)
+                    }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
+        )
+    }
+
+    // MARK: – FAB
+
+    private var fab: some View {
+        Button { showAddMeal = true } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 56, height: 56)
+                .background(AppColors.primary, in: Circle())
+                .shadow(color: AppColors.primary.opacity(0.4), radius: 12, y: 4)
+        }
+        .padding(.trailing, 20)
+        .padding(.bottom, 20)
     }
 
     private func move(by days: Int) {
-        withAnimation(.spring(duration: 0.3)) {
-            selectedDate = calendar.date(byAdding: .day, value: days, to: selectedDate) ?? selectedDate
-        }
+        selectedDate = calendar.date(byAdding: .day, value: days, to: selectedDate) ?? selectedDate
     }
 }

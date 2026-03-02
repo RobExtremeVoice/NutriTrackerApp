@@ -4,6 +4,7 @@ import SwiftData
 /// Lista de refeições de um dia agrupadas por tipo.
 struct DayLogView: View {
     let meals: [Meal]
+    let onAddMeal: () -> Void
     let onDelete: (Meal) -> Void
 
     private var grouped: [(MealType, [Meal])] {
@@ -19,8 +20,10 @@ struct DayLogView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            // Resumo do dia
-            if !meals.isEmpty {
+            if meals.isEmpty {
+                emptyState
+            } else {
+                // Daily summary card
                 GlassCard {
                     HStack {
                         statMini("Calorias", value: "\(Int(dayTotal.calories))", unit: "kcal", color: AppColors.accent)
@@ -33,48 +36,79 @@ struct DayLogView: View {
                     }
                     .padding(16)
                 }
-            }
 
-            // Grupos de refeições
-            ForEach(grouped, id: \.0) { type, typeMeals in
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(type.emoji + " " + type.displayName)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppColors.textSecondary)
+                // Meal groups with swipe-to-delete
+                ForEach(grouped, id: \.0) { type, typeMeals in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(type.emoji + " " + type.displayName)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppColors.textSecondary)
 
-                    GlassCard {
-                        ForEach(typeMeals) { meal in
-                            VStack(spacing: 0) {
-                                MealRowView(meal: meal)
-                                    .swipeActions(edge: .trailing) {
-                                        Button(role: .destructive) {
-                                            onDelete(meal)
-                                        } label: {
-                                            Label("Excluir", systemImage: "trash")
+                        GlassCard {
+                            ForEach(typeMeals) { meal in
+                                VStack(spacing: 0) {
+                                    MealRowView(meal: meal)
+                                        .swipeActions(edge: .trailing) {
+                                            Button(role: .destructive) {
+                                                onDelete(meal)
+                                            } label: {
+                                                Label("Excluir", systemImage: "trash")
+                                            }
                                         }
+                                    if meal.id != typeMeals.last?.id {
+                                        Divider().padding(.leading, 76)
                                     }
-                                if meal.id != typeMeals.last?.id {
-                                    Divider().padding(.leading, 76)
                                 }
                             }
                         }
                     }
                 }
             }
-
-            if meals.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "calendar.badge.exclamationmark")
-                        .font(.system(size: 36))
-                        .foregroundStyle(AppColors.primary.opacity(0.4))
-                    Text("Nenhuma refeição neste dia")
-                        .font(.subheadline)
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-                .padding(32)
-            }
         }
     }
+
+    // MARK: – Empty state
+
+    private var emptyState: some View {
+        VStack(spacing: 20) {
+            ZStack {
+                Circle()
+                    .fill(AppColors.primary.opacity(0.08))
+                    .frame(width: 96, height: 96)
+                Image(systemName: "fork.knife")
+                    .font(.system(size: 40, weight: .light))
+                    .foregroundStyle(AppColors.primary.opacity(0.5))
+            }
+
+            VStack(spacing: 6) {
+                Text("Nenhuma refeição registrada")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(AppColors.text)
+                Text("Registre o que você comeu neste dia")
+                    .font(.system(size: 14))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            Button { onAddMeal() } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 13, weight: .bold))
+                    Text("Adicionar refeição")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 13)
+                .background(AppColors.primary, in: Capsule())
+                .shadow(color: AppColors.primary.opacity(0.35), radius: 8, y: 3)
+            }
+        }
+        .padding(.vertical, 48)
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: – Stat cell
 
     private func statMini(_ label: String, value: String, unit: String, color: Color) -> some View {
         VStack(spacing: 2) {

@@ -40,8 +40,10 @@ struct AddMealView: View {
                 MealTypeSelector(selected: $selectedMealType)
                     .padding(.vertical, 12)
 
-                // Tabs de input
+                // Tab picker pill-style
                 tabPicker
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
 
                 // Conteúdo
                 if let result = Binding($analysisResult) {
@@ -58,12 +60,11 @@ struct AddMealView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancelar") { dismiss() }
+                        .foregroundStyle(AppColors.textSecondary)
                 }
             }
             .overlay {
-                if isAnalyzing {
-                    analyzingOverlay
-                }
+                if isAnalyzing { analyzingOverlay }
             }
             .alert("Erro na análise", isPresented: $showAnalysisError) {
                 Button("OK", role: .cancel) {}
@@ -71,8 +72,7 @@ struct AddMealView: View {
                 Text(analysisError ?? "Erro desconhecido")
             }
             .fullScreenCover(isPresented: $showCamera) {
-                CameraView(capturedImage: $capturedImage)
-                    .ignoresSafeArea()
+                CameraView(capturedImage: $capturedImage).ignoresSafeArea()
             }
             .onChange(of: capturedImage) { _, image in
                 if image != nil { analyzeImage() }
@@ -83,81 +83,98 @@ struct AddMealView: View {
         }
     }
 
-    // MARK: – Subviews
+    // MARK: – Tab Picker (pill style)
 
     private var tabPicker: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             ForEach(AddMealTab.allCases, id: \.self) { tab in
                 Button {
-                    withAnimation(.spring(duration: 0.25)) { selectedTab = tab }
+                    withAnimation(.spring(duration: 0.3)) { selectedTab = tab }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 } label: {
-                    VStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Image(systemName: tab.icon)
-                            .font(.system(size: 18))
+                            .font(.system(size: 13, weight: .semibold))
                         Text(tab.rawValue)
-                            .font(.caption.weight(.medium))
+                            .font(.system(size: 13, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .foregroundStyle(selectedTab == tab ? AppColors.primary : AppColors.textSecondary)
+                    .padding(.vertical, 9)
+                    .foregroundStyle(selectedTab == tab ? .white : AppColors.textSecondary)
+                    .background {
+                        if selectedTab == tab {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(AppColors.primary)
+                                .shadow(color: AppColors.primary.opacity(0.3), radius: 6, y: 2)
+                                .matchedGeometryEffect(id: "tab", in: tabNS)
+                        }
+                    }
                 }
+                .buttonStyle(.plain)
             }
         }
-        .overlay(alignment: .bottom) {
-            GeometryReader { geo in
-                let w = geo.size.width / CGFloat(AddMealTab.allCases.count)
-                let offset = w * CGFloat(AddMealTab.allCases.firstIndex(of: selectedTab) ?? 0)
-                Rectangle()
-                    .fill(AppColors.primary)
-                    .frame(width: w, height: 2)
-                    .offset(x: offset)
-                    .animation(.spring(duration: 0.25), value: selectedTab)
-            }
-            .frame(height: 2)
-        }
-        .background(AppColors.surface)
+        .padding(4)
+        .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 14))
+        .animation(.spring(duration: 0.3), value: selectedTab)
     }
+
+    @Namespace private var tabNS
+
+    // MARK: – Conteúdo por tab
 
     @ViewBuilder
     private var inputContent: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
                 switch selectedTab {
-                case .camera:
-                    cameraContent
-                case .gallery:
-                    galleryContent
+                case .camera:  cameraContent
+                case .gallery: galleryContent
                 case .text:
-                    BarcodeView(foodDescription: $foodDescription) {
-                        analyzeText()
-                    }
+                    BarcodeView(foodDescription: $foodDescription) { analyzeText() }
                 }
             }
-            .padding(.top, 16)
+            .padding(.top, 4)
         }
     }
 
+    // MARK: – Camera
+
     private var cameraContent: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             if let image = capturedImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .clipShape(RoundedRectangle(cornerRadius: AppConstants.largeCornerRadius, style: .continuous))
-                    .frame(maxHeight: 280)
-                    .padding(.horizontal)
+                // Preview da foto capturada
+                ZStack(alignment: .bottomTrailing) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 300)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+
+                    Button {
+                        capturedImage = nil
+                        showCamera = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.system(size: 12, weight: .bold))
+                            Text("Nova foto")
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(.black.opacity(0.55), in: Capsule())
+                    }
+                    .padding(12)
+                }
+                .padding(.horizontal, 16)
 
                 PrimaryButton(title: "Analisar com IA", icon: "sparkles") {
                     analyzeImage()
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 16)
 
-                Button("Tirar nova foto") {
-                    capturedImage = nil
-                    showCamera = true
-                }
-                .font(.system(size: 14))
-                .foregroundStyle(AppColors.primary)
             } else {
                 cameraPlaceholder
             }
@@ -165,30 +182,54 @@ struct AddMealView: View {
     }
 
     private var cameraPlaceholder: some View {
-        GlassCard(cornerRadius: AppConstants.largeCornerRadius) {
+        ZStack {
+            // Fundo escuro viewfinder
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color(hex: "1A1A1E"))
+                .frame(height: 320)
+
+            // Corner brackets
+            GeometryReader { geo in
+                let w = geo.size.width
+                let h = geo.size.height
+                let corner: CGFloat = 28
+                let lw: CGFloat = 3
+
+                ZStack {
+                    // Topo-esquerdo
+                    bracketPath(x: 16, y: 16, dx: corner, dy: corner, lw: lw)
+                    // Topo-direito
+                    bracketPath(x: w - 16, y: 16, dx: -corner, dy: corner, lw: lw)
+                    // Base-esquerdo
+                    bracketPath(x: 16, y: h - 16, dx: corner, dy: -corner, lw: lw)
+                    // Base-direito
+                    bracketPath(x: w - 16, y: h - 16, dx: -corner, dy: -corner, lw: lw)
+                }
+            }
+            .frame(height: 320)
+            .allowsHitTesting(false)
+
+            // Conteúdo central
             VStack(spacing: 20) {
-                // Ícone circular
                 ZStack {
                     Circle()
-                        .fill(AppColors.primary.opacity(0.1))
-                        .frame(width: 88, height: 88)
+                        .fill(.white.opacity(0.08))
+                        .frame(width: 80, height: 80)
                     Image(systemName: "camera.fill")
-                        .font(.system(size: 38, weight: .medium))
-                        .foregroundStyle(AppColors.primary.opacity(0.65))
+                        .font(.system(size: 34, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.7))
                 }
 
-                // Texto
                 VStack(spacing: 6) {
                     Text("Fotografe sua refeição")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(AppColors.text)
-                    Text("A IA identifica os alimentos e calcula os nutrientes automaticamente")
-                        .font(.system(size: 15))
-                        .foregroundStyle(AppColors.textSecondary)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
+                    Text("A IA identifica os alimentos e calcula\nos nutrientes automaticamente")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white.opacity(0.55))
                         .multilineTextAlignment(.center)
                 }
 
-                // Botão
                 Button {
                     guard appState.canUsePhotoScan() else {
                         appState.showPaywall = true
@@ -197,76 +238,145 @@ struct AddMealView: View {
                     showCamera = true
                 } label: {
                     HStack(spacing: 8) {
-                        Text("Abrir câmera")
-                            .font(.system(size: 16, weight: .bold))
                         Image(systemName: "camera.fill")
+                            .font(.system(size: 14, weight: .bold))
+                        Text("Abrir câmera")
+                            .font(.system(size: 15, weight: .bold))
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(AppColors.primary)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .shadow(color: AppColors.primary.opacity(0.3), radius: 10, y: 4)
+                    .foregroundStyle(Color(hex: "1A1A1E"))
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 13)
+                    .background(AppColors.primary, in: Capsule())
+                    .shadow(color: AppColors.primary.opacity(0.4), radius: 10, y: 4)
                 }
             }
-            .padding(28)
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
     }
 
+    /// Desenha dois segmentos de canto (L-shape) em (x, y) com deltas.
+    private func bracketPath(x: CGFloat, y: CGFloat, dx: CGFloat, dy: CGFloat, lw: CGFloat) -> some View {
+        Path { p in
+            p.move(to: CGPoint(x: x + dx, y: y))
+            p.addLine(to: CGPoint(x: x, y: y))
+            p.addLine(to: CGPoint(x: x, y: y + dy))
+        }
+        .stroke(.white.opacity(0.45), style: StrokeStyle(lineWidth: lw, lineCap: .round))
+    }
+
+    // MARK: – Gallery
+
     private var galleryContent: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             if let image = capturedImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .clipShape(RoundedRectangle(cornerRadius: AppConstants.largeCornerRadius, style: .continuous))
-                    .frame(maxHeight: 280)
-                    .padding(.horizontal)
+                ZStack(alignment: .bottomTrailing) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 300)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+
+                    PhotosPicker(selection: $photoPickerItem, matching: .images) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.system(size: 12, weight: .bold))
+                            Text("Trocar foto")
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(.black.opacity(0.55), in: Capsule())
+                    }
+                    .padding(12)
+                }
+                .padding(.horizontal, 16)
 
                 PrimaryButton(title: "Analisar com IA", icon: "sparkles") {
                     analyzeImage()
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 16)
+
             } else {
                 PhotosPicker(selection: $photoPickerItem, matching: .images) {
-                    GlassCard(cornerRadius: AppConstants.largeCornerRadius) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemGray6))
+                            .frame(height: 320)
+
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .strokeBorder(
+                                AppColors.primary.opacity(0.3),
+                                style: StrokeStyle(lineWidth: 2, dash: [8, 6])
+                            )
+                            .frame(height: 320)
+
                         VStack(spacing: 16) {
-                            Image(systemName: "photo.fill.on.rectangle.fill")
-                                .font(.system(size: 48))
-                                .foregroundStyle(AppColors.primary.opacity(0.6))
-                            Text("Escolher da galeria")
-                                .font(.title3.weight(.semibold))
-                                .foregroundStyle(AppColors.text)
-                            Text("Selecione uma foto de refeição existente")
-                                .font(.subheadline)
-                                .foregroundStyle(AppColors.textSecondary)
+                            ZStack {
+                                Circle()
+                                    .fill(AppColors.primary.opacity(0.1))
+                                    .frame(width: 80, height: 80)
+                                Image(systemName: "photo.on.rectangle.angled")
+                                    .font(.system(size: 34, weight: .medium))
+                                    .foregroundStyle(AppColors.primary.opacity(0.7))
+                            }
+                            VStack(spacing: 6) {
+                                Text("Escolher da galeria")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundStyle(AppColors.text)
+                                Text("Selecione uma foto de refeição existente")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(AppColors.textSecondary)
+                            }
+                            HStack(spacing: 6) {
+                                Image(systemName: "photo.fill")
+                                    .font(.system(size: 13, weight: .bold))
+                                Text("Abrir galeria")
+                                    .font(.system(size: 15, weight: .bold))
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 28)
+                            .padding(.vertical, 13)
+                            .background(AppColors.primary, in: Capsule())
+                            .shadow(color: AppColors.primary.opacity(0.4), radius: 10, y: 4)
                         }
-                        .padding(32)
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 16)
                 }
+                .buttonStyle(.plain)
             }
         }
     }
 
+    // MARK: – Analyzing Overlay
+
     private var analyzingOverlay: some View {
         ZStack {
-            Color.black.opacity(0.5).ignoresSafeArea()
-            GlassCard(cornerRadius: AppConstants.largeCornerRadius) {
-                VStack(spacing: 16) {
+            Color.black.opacity(0.6).ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                ZStack {
+                    Circle()
+                        .fill(AppColors.primary.opacity(0.15))
+                        .frame(width: 80, height: 80)
+
                     ProgressView()
-                        .scaleEffect(1.4)
+                        .scaleEffect(1.6)
                         .tint(AppColors.primary)
-                    Text("Analisando refeição...")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(AppColors.text)
-                    Text("A IA está identificando os alimentos")
-                        .font(.caption)
-                        .foregroundStyle(AppColors.textSecondary)
                 }
-                .padding(32)
+
+                VStack(spacing: 6) {
+                    Text("Analisando refeição...")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                    Text("A IA está identificando os alimentos")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white.opacity(0.65))
+                }
             }
+            .padding(36)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
             .padding(40)
         }
     }
@@ -276,12 +386,7 @@ struct AddMealView: View {
     private func analyzeImage() {
         guard let image = capturedImage,
               let data = image.jpegData(compressionQuality: 0.8) else { return }
-
-        guard appState.canUsePhotoScan() else {
-            appState.showPaywall = true
-            return
-        }
-
+        guard appState.canUsePhotoScan() else { appState.showPaywall = true; return }
         isAnalyzing = true
         Task {
             do {
@@ -304,26 +409,16 @@ struct AddMealView: View {
     private func analyzeText() {
         let text = foodDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        // Placeholder: cria resultado mock para texto (seria feita via Chat API sem imagem)
         isAnalyzing = true
         Task {
             try? await Task.sleep(for: .seconds(1.5))
             await MainActor.run {
                 analysisResult = FoodAnalysisResult(
-                    mealName: text,
-                    confidence: "medium",
-                    foods: [
-                        FoodAnalysisItem(
-                            name: text,
-                            estimatedWeightG: 200,
-                            confidence: "medium",
-                            calories: 300,
-                            proteinG: 20,
-                            carbsG: 30,
-                            fatG: 10,
-                            fiberG: 3
-                        )
-                    ],
+                    mealName: text, confidence: "medium",
+                    foods: [FoodAnalysisItem(
+                        name: text, estimatedWeightG: 200, confidence: "medium",
+                        calories: 300, proteinG: 20, carbsG: 30, fatG: 10, fiberG: 3
+                    )],
                     portionNote: "Estimado"
                 )
                 isAnalyzing = false
@@ -341,16 +436,12 @@ struct AddMealView: View {
 
     private func saveMeal(result: FoodAnalysisResult?) {
         guard let result else { return }
-        let meal = Meal(
-            type: selectedMealType,
-            name: result.mealName,
-            imageData: capturedImage?.jpegData(compressionQuality: 0.7)
-        )
+        let meal = Meal(type: selectedMealType, name: result.mealName,
+                        imageData: capturedImage?.jpegData(compressionQuality: 0.7))
         for food in result.foods {
             let w = food.estimatedWeightG
             let item = FoodItem(
-                name: food.name,
-                weightG: w,
+                name: food.name, weightG: w,
                 caloriesPer100g: w > 0 ? food.calories / w * 100 : 0,
                 proteinPer100g:  w > 0 ? food.proteinG / w * 100 : 0,
                 carbsPer100g:    w > 0 ? food.carbsG   / w * 100 : 0,

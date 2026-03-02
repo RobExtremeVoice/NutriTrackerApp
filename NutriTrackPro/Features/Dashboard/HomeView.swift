@@ -9,9 +9,23 @@ struct HomeView: View {
     @Query(sort: \UserProfile.name) private var profiles: [UserProfile]
     @Query(sort: \Meal.timestamp, order: .reverse) private var allMeals: [Meal]
 
-    @State private var showAddMeal = false
+    @State private var showAddMeal    = false
+    @State private var showProfile    = false
 
     private var profile: UserProfile? { profiles.first }
+
+    private var profilePhoto: UIImage? {
+        guard let data = UserDefaults.standard.data(forKey: "userProfilePhotoData") else { return nil }
+        return UIImage(data: data)
+    }
+
+    private var initials: String {
+        guard let name = profile?.name, !name.isEmpty else { return "U" }
+        let parts = name.components(separatedBy: " ")
+        let first = parts.first?.first.map(String.init) ?? ""
+        let last  = parts.count > 1 ? (parts.last?.first.map(String.init) ?? "") : ""
+        return (first + last).uppercased()
+    }
 
     private var todayMeals: [Meal] {
         allMeals.filter { $0.isOnDay(.now) }
@@ -80,25 +94,30 @@ struct HomeView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 4)
 
-                    // Calorie Ring
+                    // Resumo nutricional unificado (ring + macros)
                     GlassCard(cornerRadius: AppConstants.largeCornerRadius) {
-                        CalorieRingView(
-                            consumed: todayNutrition.calories,
-                            goal: goalNutrition.calories
-                        )
-                        .padding(20)
+                        VStack(spacing: 0) {
+                            CalorieRingView(
+                                consumed: todayNutrition.calories,
+                                goal: goalNutrition.calories
+                            )
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                            .padding(.bottom, 16)
+
+                            Divider()
+                                .padding(.horizontal, 16)
+
+                            MacrosSectionView(
+                                nutrition: todayNutrition,
+                                goals: goalNutrition
+                            )
+                        }
                     }
                     .padding(.horizontal, 16)
 
-                    // Macros
-                    MacrosSectionView(
-                        nutrition: todayNutrition,
-                        goals: goalNutrition
-                    )
-                    .padding(.horizontal, 16)
-
                     // Água
-                    WaterTrackerView(goal: profile?.dailyWaterGoal ?? 8)
+                    WaterTrackerView(goal: profile?.dailyWaterGoal ?? 2000)
                         .padding(.horizontal, 16)
 
                     // Refeições
@@ -151,9 +170,31 @@ struct HomeView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Text("NutriTrack Pro")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(AppColors.text)
+                    Button { showProfile = true } label: {
+                        ZStack {
+                            if let photo = profilePhoto {
+                                Image(uiImage: photo)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 36, height: 36)
+                                    .clipShape(Circle())
+                            } else {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [AppColors.primary, AppColors.primaryDark],
+                                            startPoint: .topLeading, endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 36, height: 36)
+                                Text(initials)
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .shadow(color: AppColors.primary.opacity(0.3), radius: 4, y: 2)
+                    }
+                    .buttonStyle(.plain)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -172,6 +213,9 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showAddMeal) {
                 AddMealView()
+            }
+            .sheet(isPresented: $showProfile) {
+                ProfileView()
             }
         }
     }

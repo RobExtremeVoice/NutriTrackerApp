@@ -1,18 +1,18 @@
 import SwiftUI
 
-/// Bolha de mensagem — variante usuário (direita/verde) e IA (esquerda/branca).
+/// Bolha de mensagem — usuário (direita/verde degradê) e IA (esquerda/branca).
 struct MessageBubbleView: View {
     let message: ChatMessage
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
             if message.isUser {
-                Spacer(minLength: 60)
+                Spacer(minLength: 56)
                 bubble
             } else {
                 aiAvatar
                 bubble
-                Spacer(minLength: 60)
+                Spacer(minLength: 56)
             }
         }
     }
@@ -24,19 +24,25 @@ struct MessageBubbleView: View {
                 .foregroundStyle(message.isUser ? .white : AppColors.text)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(
-                    message.isUser
-                        ? AnyShapeStyle(AppColors.primary)
-                        : AnyShapeStyle(AppColors.surface),
-                    in: RoundedRectangle(
-                        cornerRadius: 18,
-                        style: .continuous
-                    )
-                )
-                .shadow(color: .black.opacity(message.isUser ? 0.08 : 0.06), radius: 6, y: 2)
+                .background {
+                    if message.isUser {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [AppColors.primary, AppColors.primaryDark],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    } else {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(AppColors.surface)
+                    }
+                }
+                .shadow(color: .black.opacity(message.isUser ? 0.1 : 0.06), radius: 6, y: 2)
 
             Text(message.timestamp, style: .time)
-                .font(.caption2)
+                .font(.system(size: 10))
                 .foregroundStyle(AppColors.textSecondary)
                 .padding(.horizontal, 4)
         }
@@ -45,10 +51,17 @@ struct MessageBubbleView: View {
     private var aiAvatar: some View {
         ZStack {
             Circle()
-                .fill(AppColors.primary.opacity(0.12))
-            Text("🥗")
-                .font(.system(size: 16))
+                .fill(
+                    LinearGradient(
+                        colors: [AppColors.primary, AppColors.primaryDark],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+                )
+            Image(systemName: "leaf.fill")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(.white)
         }
         .frame(width: 30, height: 30)
+        .shadow(color: AppColors.primary.opacity(0.25), radius: 4, y: 2)
     }
 }
