@@ -65,6 +65,23 @@ final class NotificationService {
         try await center.add(request)
     }
 
+    // MARK: – Re-engagement
+
+    /// Agenda (ou reaplica) um lembrete condicional 26h após o último registro.
+    /// Cancela qualquer lembrete anterior antes de agendar o novo.
+    /// Se o usuário logar antes das 26h, o timer recomeça do zero.
+    func scheduleReEngagementReminder() async {
+        center.removePendingNotificationRequests(withIdentifiers: ["re_engagement"])
+        let content = UNMutableNotificationContent()
+        content.title = "Você não registrou hoje 🔥"
+        content.body = "Sua sequência está em risco! Registre uma refeição agora."
+        content.sound = .default
+        // Dispara 26 horas após o último log — se não houver novo log até lá
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 26 * 3600, repeats: false)
+        let request = UNNotificationRequest(identifier: "re_engagement", content: content, trigger: trigger)
+        try? await center.add(request)
+    }
+
     // MARK: – Cancel
 
     /// Cancela o lembrete de uma refeição específica (quando o usuário já logou).

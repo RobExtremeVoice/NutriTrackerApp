@@ -319,12 +319,46 @@ struct PaywallView: View {
     private func purchase() {
         isPurchasing = true
         Task {
-            try? await Task.sleep(for: .seconds(1.5))
-            await MainActor.run {
-                appState.currentPlan = selectedPlan
-                isPurchasing = false
-                dismiss()
+            do {
+                // Resolve the correct StoreKit product from loaded catalog
+                let productID = resolveProductID()
+                guard let product = subscriptionService.products.first(where: { $0.id == productID }) else {
+                    throw PurchaseError.productNotFound
+                }
+                try await subscriptionService.purchase(product)
+                // Sync plan from SubscriptionService → AppState so gating stays consistent
+                await MainActor.run {
+                    appState.currentPlan = subscriptionService.currentPlan
+                    isPurchasing = false
+                    dismiss()
+                }
+            } catch PurchaseError.productNotFound {
+                await MainActor.run {
+                    purchaseError = "Produto não encontrado. Verifique sua conexão e tente novamente."
+                    showError = true
+                    isPurchasing = false
+                }
+            } catch {
+                await MainActor.run {
+                    purchaseError = error.localizedDescription
+                    showError = true
+                    isPurchasing = false
+                }
             }
         }
     }
+
+    private func resolveProductID() -> String {
+        switch (selectedPlan, isAnnual) {
+        case (.elite, false): return AppConstants.ProductID.eliteMonthly
+        case (.elite, true):  return AppConstants.ProductID.eliteAnnual
+        case (.pro, true):    return AppConstants.ProductID.proAnnual
+        default:              return AppConstants.ProductID.proMonthly
+        }
+    }
+}
+
+private enum PurchaseError: LocalizedError {
+    case productNotFound
+    var errorDescription: String? { "Produto não encontrado." }
 }

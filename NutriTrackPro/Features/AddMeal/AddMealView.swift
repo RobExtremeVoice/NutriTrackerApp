@@ -409,19 +409,22 @@ struct AddMealView: View {
     private func analyzeText() {
         let text = foodDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
+        guard appState.canUsePhotoScan() else { appState.showPaywall = true; return }
         isAnalyzing = true
         Task {
-            try? await Task.sleep(for: .seconds(1.5))
-            await MainActor.run {
-                analysisResult = FoodAnalysisResult(
-                    mealName: text, confidence: "medium",
-                    foods: [FoodAnalysisItem(
-                        name: text, estimatedWeightG: 200, confidence: "medium",
-                        calories: 300, proteinG: 20, carbsG: 30, fatG: 10, fiberG: 3
-                    )],
-                    portionNote: "Estimado"
-                )
-                isAnalyzing = false
+            do {
+                let result = try await FoodVisionService.shared.analyzeText(text)
+                await MainActor.run {
+                    analysisResult = result
+                    isAnalyzing = false
+                    appState.incrementPhotoScan()
+                }
+            } catch {
+                await MainActor.run {
+                    analysisError = error.localizedDescription
+                    showAnalysisError = true
+                    isAnalyzing = false
+                }
             }
         }
     }
@@ -453,7 +456,32 @@ struct AddMealView: View {
             modelContext.insert(item)
         }
         modelContext.insert(meal)
+
+        // Update streak — fetch profile from current context
+        if let profile = try? modelContext.fetch(FetchDescriptor<UserProfile>()).first {
+            updateStreak(profile: profile)
+        }
+
+        // Reset the 26h re-engagement timer on every successful log
+        Task { await NotificationService.shared.scheduleReEngagementReminder() }
+
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         dismiss()
+    }
+
+    /// Atualiza a sequência diária do usuário (streakDays + lastLogDate).
+    private func updateStreak(profile: UserProfile) {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        if let last = profile.lastLogDate, calendar.isDate(last, inSameDayAs: Date()) {
+            // Já registrou hoje — sem alteração
+            return
+        } else if let last = profile.lastLogDate,
+                  calendar.dateComponents([.day], from: calendar.startOfDay(for: last), to: today).day == 1 {
+            profile.streakDays += 1   // dia consecutivo
+        } else {
+            profile.streakDays = 1    // primeira vez ou sequência quebrada
+        }
+        profile.lastLogDate = today
     }
 }

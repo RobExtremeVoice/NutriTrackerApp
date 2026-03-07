@@ -36,6 +36,58 @@ actor FoodVisionService {
 
     private var apiKey: String { AppConstants.openAIKey }
 
+    /// Analisa uma descrição textual de refeição usando GPT-4o (sem imagem).
+    func analyzeText(_ description: String) async throws -> FoodAnalysisResult {
+        guard !apiKey.isEmpty, apiKey != "sk-proj-your_openai_key_here" else {
+            throw VisionError.missingAPIKey
+        }
+
+        let prompt = """
+        Analise esta descrição de refeição e retorne a estimativa nutricional.
+        Descrição: \(description)
+
+        Responda APENAS com JSON válido, sem markdown, neste formato exato:
+        {
+          "mealName": "Nome descritivo da refeição em Português",
+          "confidence": "high|medium|low",
+          "foods": [
+            {
+              "name": "Nome do alimento em Português",
+              "estimatedWeightG": 150,
+              "confidence": "medium",
+              "calories": 250,
+              "proteinG": 30,
+              "carbsG": 10,
+              "fatG": 8,
+              "fiberG": 2
+            }
+          ],
+          "portionNote": "Estimado para 1 porção média"
+        }
+        """
+
+        let body: [String: Any] = [
+            "model": AppConstants.chatModel,
+            "max_tokens": 1200,
+            "messages": [["role": "user", "content": prompt]]
+        ]
+
+        var request = URLRequest(url: URL(string: AppConstants.openAIEndpoint)!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        request.timeoutInterval = 30
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw VisionError.invalidResponse }
+        guard http.statusCode == 200 else {
+            let msg = String(data: data, encoding: .utf8) ?? "Erro \(http.statusCode)"
+            throw VisionError.apiError(msg)
+        }
+        return try parseResponse(data)
+    }
+
     func analyze(imageData: Data) async throws -> FoodAnalysisResult {
         guard !apiKey.isEmpty, apiKey != "sk-proj-your_openai_key_here" else {
             throw VisionError.missingAPIKey

@@ -7,9 +7,11 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
     case elite
 
     /// Limite de análises por foto por dia.
+    /// Free sobe para 10 para que novos usuários completem o loop (café, almoço, jantar + lanches)
+    /// antes de encontrar o paywall — princípio Hooked: muitas repetições antes de monetizar.
     var dailyPhotoLimit: Int {
         switch self {
-        case .free:  return 3
+        case .free:  return 10
         case .pro:   return 30
         case .elite: return Int.max
         }

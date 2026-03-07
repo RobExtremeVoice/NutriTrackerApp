@@ -23,10 +23,44 @@ struct ChatView: View {
         todayMeals.reduce(.zero) { $0 + $1.totalNutrition }
     }
 
+    /// Média diária dos últimos 7 dias (excluindo hoje) — usada para personalizar a Nutri.
+    private var weeklyAverages: (calories: Double, protein: Double, carbs: Double, fat: Double) {
+        let calendar = Calendar.current
+        let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        let weekMeals = allMeals.filter {
+            $0.timestamp >= sevenDaysAgo && !calendar.isDateInToday($0.timestamp)
+        }
+        guard !weekMeals.isEmpty else { return (0, 0, 0, 0) }
+        // Agrupar por dia para obter médias diárias reais
+        var byDay: [Date: NutritionInfo] = [:]
+        for meal in weekMeals {
+            let day = calendar.startOfDay(for: meal.timestamp)
+            byDay[day, default: .zero] = byDay[day, default: .zero] + meal.totalNutrition
+        }
+        let count = Double(byDay.count)
+        let totals = byDay.values.reduce(.zero) { $0 + $1 }
+        return (
+            calories: totals.calories / count,
+            protein:  totals.protein  / count,
+            carbs:    totals.carbs    / count,
+            fat:      totals.fat      / count
+        )
+    }
+
     private var systemPrompt: String {
         let p = profile
         let goal = p?.dailyCalorieGoal ?? 2000
         let meals = todayMeals.map { "\($0.name) (\(Int($0.totalCalories)) kcal)" }.joined(separator: ", ")
+        let avg = weeklyAverages
+        let historyContext = avg.calories > 0
+            ? """
+              Médias dos últimos 7 dias:
+              - Calorias: \(Int(avg.calories)) kcal/dia
+              - Proteína: \(Int(avg.protein))g/dia
+              - Carboidratos: \(Int(avg.carbs))g/dia
+              - Gordura: \(Int(avg.fat))g/dia
+              """
+            : "Histórico: usuário novo, sem dados dos últimos 7 dias."
         return """
         Você é uma nutricionista brasileira amigável e experiente chamada Nutri.
         Contexto do usuário hoje:
@@ -36,7 +70,9 @@ struct ChatView: View {
         - Gordura: \(Int(todayNutrition.fat))g
         - Refeições hoje: \(meals.isEmpty ? "nenhuma ainda" : meals)
         - Objetivo: \(p?.goalEnum.displayName ?? "manter peso")
+        \(historyContext)
         Responda sempre em Português do Brasil. Seja direta, prática e encorajadora.
+        Use o histórico para dar conselhos personalizados quando relevante.
         Máximo 150 palavras por resposta.
         """
     }
