@@ -13,14 +13,14 @@ struct ChatMessage: Identifiable, Codable {
 
 // MARK: – Service
 
-/// Actor responsável pelas mensagens GPT-4o via proxy AWS Lambda.
-/// O proxy não suporta SSE, então usamos resposta completa (sem stream).
+/// Actor responsável pelo streaming de mensagens GPT-4o via proxy AWS Lambda.
+/// O proxy usa Lambda Response Streaming + InvokeMode: RESPONSE_STREAM,
+/// então SSE chega token a token exatamente como direto da OpenAI.
 actor ChatService {
     static let shared = ChatService()
     private init() {}
 
-    /// Envia mensagens ao proxy e retorna o conteúdo via AsyncThrowingStream
-    /// (compatível com o caller existente no ChatView).
+    /// Envia mensagens ao proxy e devolve tokens via AsyncThrowingStream.
     func sendStream(
         messages: [ChatMessage],
         systemPrompt: String
@@ -28,8 +28,11 @@ actor ChatService {
         AsyncThrowingStream { continuation in
             Task {
                 do {
-                    let content = try await self.send(messages: messages, systemPrompt: systemPrompt)
-                    continuation.yield(content)
+                    try await self.stream(
+                        messages: messages,
+                        systemPrompt: systemPrompt,
+                        continuation: continuation
+                    )
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
@@ -40,7 +43,11 @@ actor ChatService {
 
     // MARK: – Private
 
-    private func send(messages: [ChatMessage], systemPrompt: String) async throws -> String {
+    private func stream(
+        messages: [ChatMessage],
+        systemPrompt: String,
+        continuation: AsyncThrowingStream<String, Error>.Continuation
+    ) async throws {
         var payload: [[String: String]] = [["role": "system", "content": systemPrompt]]
         for m in messages {
             payload.append(["role": m.role, "content": m.content])
@@ -48,6 +55,7 @@ actor ChatService {
 
         let body: [String: Any] = [
             "model": AppConstants.chatModel,
+            "stream": true,
             "max_tokens": 800,
             "messages": payload
         ]
@@ -58,18 +66,25 @@ actor ChatService {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         request.timeoutInterval = 60
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (bytes, response) = try await URLSession.shared.bytes(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw ChatError.invalidResponse
         }
 
-        guard let json    = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let choices = json["choices"] as? [[String: Any]],
-              let message = choices.first?["message"] as? [String: Any],
-              let content = message["content"] as? String else {
-            throw ChatError.invalidResponse
+        // Parse SSE lines: "data: {...}" or "data: [DONE]"
+        for try await line in bytes.lines {
+            guard line.hasPrefix("data: ") else { continue }
+            let jsonStr = String(line.dropFirst(6))
+            guard jsonStr != "[DONE]" else { break }
+
+            if let data    = jsonStr.data(using: .utf8),
+               let json    = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let choices = json["choices"] as? [[String: Any]],
+               let delta   = choices.first?["delta"] as? [String: Any],
+               let token   = delta["content"] as? String {
+                continuation.yield(token)
+            }
         }
-        return content
     }
 }
 
