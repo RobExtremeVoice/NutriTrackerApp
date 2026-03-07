@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # NutriTrack Pro — AWS Lambda proxy deployer
-# Requires: aws CLI configured with valid credentials
+# Requires: aws CLI configured (run: aws configure --profile nutri)
 # Usage: bash deploy.sh
 
 set -euo pipefail
@@ -8,6 +8,8 @@ set -euo pipefail
 REGION="us-east-1"
 FUNCTION_NAME="nutri-openai-proxy"
 ROLE_NAME="nutri-proxy-lambda-role"
+AWS_PROFILE="${AWS_PROFILE:-nutri}"
+export AWS_PROFILE
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "==> Checking AWS credentials..."
