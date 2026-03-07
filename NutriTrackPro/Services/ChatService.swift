@@ -13,14 +13,14 @@ struct ChatMessage: Identifiable, Codable {
 
 // MARK: – Service
 
-/// Actor responsável pelo streaming de mensagens GPT-4o.
+/// Actor responsável pelas mensagens GPT-4o via proxy AWS Lambda.
+/// O proxy não suporta SSE, então usamos resposta completa (sem stream).
 actor ChatService {
     static let shared = ChatService()
     private init() {}
 
-    private var apiKey: String { AppConstants.openAIKey }
-
-    /// Envia mensagens ao GPT-4o e retorna os tokens via AsyncStream.
+    /// Envia mensagens ao proxy e retorna o conteúdo via AsyncThrowingStream
+    /// (compatível com o caller existente no ChatView).
     func sendStream(
         messages: [ChatMessage],
         systemPrompt: String
@@ -28,11 +28,8 @@ actor ChatService {
         AsyncThrowingStream { continuation in
             Task {
                 do {
-                    try await self.stream(
-                        messages: messages,
-                        systemPrompt: systemPrompt,
-                        continuation: continuation
-                    )
+                    let content = try await self.send(messages: messages, systemPrompt: systemPrompt)
+                    continuation.yield(content)
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
@@ -43,15 +40,7 @@ actor ChatService {
 
     // MARK: – Private
 
-    private func stream(
-        messages: [ChatMessage],
-        systemPrompt: String,
-        continuation: AsyncThrowingStream<String, Error>.Continuation
-    ) async throws {
-        guard !apiKey.isEmpty, apiKey != "sk-proj-your_openai_key_here" else {
-            throw ChatError.missingAPIKey
-        }
-
+    private func send(messages: [ChatMessage], systemPrompt: String) async throws -> String {
         var payload: [[String: String]] = [["role": "system", "content": systemPrompt]]
         for m in messages {
             payload.append(["role": m.role, "content": m.content])
@@ -59,52 +48,37 @@ actor ChatService {
 
         let body: [String: Any] = [
             "model": AppConstants.chatModel,
-            "stream": true,
             "max_tokens": 800,
             "messages": payload
         ]
 
         var request = URLRequest(url: URL(string: AppConstants.openAIEndpoint)!)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         request.timeoutInterval = 60
 
-        let (bytes, response) = try await URLSession.shared.bytes(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw ChatError.invalidResponse
         }
 
-        for try await line in bytes.lines {
-            // SSE format: "data: {...}" or "data: [DONE]"
-            guard line.hasPrefix("data: ") else { continue }
-            let jsonStr = String(line.dropFirst(6))
-            guard jsonStr != "[DONE]" else { break }
-
-            if let data   = jsonStr.data(using: .utf8),
-               let json   = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let choices = json["choices"] as? [[String: Any]],
-               let delta  = choices.first?["delta"] as? [String: Any],
-               let token  = delta["content"] as? String {
-                continuation.yield(token)
-            }
+        guard let json    = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let choices = json["choices"] as? [[String: Any]],
+              let message = choices.first?["message"] as? [String: Any],
+              let content = message["content"] as? String else {
+            throw ChatError.invalidResponse
         }
+        return content
     }
 }
 
 // MARK: – Errors
 
 enum ChatError: LocalizedError {
-    case missingAPIKey
     case invalidResponse
 
     var errorDescription: String? {
-        switch self {
-        case .missingAPIKey:
-            return "Chave da API OpenAI não configurada."
-        case .invalidResponse:
-            return "Resposta inválida do servidor de chat."
-        }
+        "Resposta inválida do servidor de chat."
     }
 }

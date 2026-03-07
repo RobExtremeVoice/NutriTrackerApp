@@ -2,18 +2,9 @@ import Foundation
 
 /// Constantes globais do aplicativo.
 enum AppConstants {
-    // MARK: – OpenAI
-    static var openAIKey: String {
-        get {
-            let stored = UserDefaults.standard.string(forKey: "openai_api_key") ?? ""
-            if !stored.isEmpty { return stored }
-            return Bundle.main.infoDictionary?["OPENAI_API_KEY"] as? String ?? ""
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "openai_api_key")
-        }
-    }
-    static let openAIEndpoint = "https://api.openai.com/v1/chat/completions"
+    // MARK: – OpenAI proxy
+    // API key lives server-side in AWS Lambda — never in the app.
+    static let openAIEndpoint = "https://pm6ufkqebtpspekk6lfyud4l2a0rmozl.lambda-url.us-east-1.on.aws/"
     static let visionModel    = "gpt-4o"
     static let chatModel      = "gpt-4o"
 

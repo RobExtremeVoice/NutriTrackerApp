@@ -34,14 +34,8 @@ actor FoodVisionService {
     static let shared = FoodVisionService()
     private init() {}
 
-    private var apiKey: String { AppConstants.openAIKey }
-
     /// Analisa uma descrição textual de refeição usando GPT-4o (sem imagem).
     func analyzeText(_ description: String) async throws -> FoodAnalysisResult {
-        guard !apiKey.isEmpty, apiKey != "sk-proj-your_openai_key_here" else {
-            throw VisionError.missingAPIKey
-        }
-
         let prompt = """
         Analise esta descrição de refeição e retorne a estimativa nutricional.
         Descrição: \(description)
@@ -74,7 +68,6 @@ actor FoodVisionService {
 
         var request = URLRequest(url: URL(string: AppConstants.openAIEndpoint)!)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         request.timeoutInterval = 30
@@ -89,9 +82,6 @@ actor FoodVisionService {
     }
 
     func analyze(imageData: Data) async throws -> FoodAnalysisResult {
-        guard !apiKey.isEmpty, apiKey != "sk-proj-your_openai_key_here" else {
-            throw VisionError.missingAPIKey
-        }
 
         // Comprimir imagem para reduzir tokens
         let compressedData = compressImage(imageData) ?? imageData
@@ -134,7 +124,6 @@ actor FoodVisionService {
 
         var request = URLRequest(url: URL(string: AppConstants.openAIEndpoint)!)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         request.timeoutInterval = 30
@@ -203,15 +192,12 @@ actor FoodVisionService {
 // MARK: – Errors
 
 enum VisionError: LocalizedError {
-    case missingAPIKey
     case invalidResponse
     case apiError(String)
     case parseError(String)
 
     var errorDescription: String? {
         switch self {
-        case .missingAPIKey:
-            return "Chave da API OpenAI não configurada. Adicione em Config.xcconfig."
         case .invalidResponse:
             return "Resposta inválida do servidor."
         case .apiError(let msg):
