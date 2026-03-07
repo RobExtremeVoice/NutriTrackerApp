@@ -1,6 +1,7 @@
 import SwiftUI
+import UIKit
 
-/// Onboarding com 4 slides, fundo gradiente escuro, logo e botão verde.
+/// Onboarding com 4 slides, fundo foto real + overlay escuro, logo e botão verde.
 struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var showUserSetup = false
@@ -13,7 +14,8 @@ struct OnboardingView: View {
             backgroundColors: [
                 Color(red: 0.06, green: 0.28, blue: 0.14),
                 Color(red: 0.02, green: 0.10, blue: 0.06)
-            ]
+            ],
+            imageName: "onboarding_1"
         ),
         OnboardingSlideData(
             iconName: "sparkles",
@@ -22,7 +24,8 @@ struct OnboardingView: View {
             backgroundColors: [
                 Color(red: 0.30, green: 0.14, blue: 0.04),
                 Color(red: 0.12, green: 0.06, blue: 0.01)
-            ]
+            ],
+            imageName: "onboarding_2"
         ),
         OnboardingSlideData(
             iconName: "scope",
@@ -31,7 +34,8 @@ struct OnboardingView: View {
             backgroundColors: [
                 Color(red: 0.06, green: 0.10, blue: 0.32),
                 Color(red: 0.02, green: 0.04, blue: 0.15)
-            ]
+            ],
+            imageName: "onboarding_3"
         ),
         OnboardingSlideData(
             iconName: "drop.fill",
@@ -40,24 +44,34 @@ struct OnboardingView: View {
             backgroundColors: [
                 Color(red: 0.04, green: 0.20, blue: 0.36),
                 Color(red: 0.02, green: 0.08, blue: 0.18)
-            ]
+            ],
+            imageName: "onboarding_4"
         ),
     ]
 
     var body: some View {
         ZStack {
-            // Fundo gradiente animado conforme o slide
-            LinearGradient(
-                colors: slides[currentPage].backgroundColors,
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            .animation(.easeInOut(duration: 0.5), value: currentPage)
+            // Fundo: foto real quando disponível, senão gradiente de cor
+            if let name = slides[currentPage].imageName,
+               UIImage(named: name) != nil {
+                Image(name)
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
+                    .animation(.easeInOut(duration: 0.5), value: currentPage)
+            } else {
+                LinearGradient(
+                    colors: slides[currentPage].backgroundColors,
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                .animation(.easeInOut(duration: 0.5), value: currentPage)
+            }
 
-            // Overlay escuro para legibilidade
+            // Overlay escuro para legibilidade (igual ao design HTML)
             LinearGradient(
-                colors: [Color.black.opacity(0.25), Color.black.opacity(0.65)],
+                colors: [Color.black.opacity(0.40), Color.black.opacity(0.70)],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -66,9 +80,9 @@ struct OnboardingView: View {
             VStack(spacing: 0) {
                 // Logo
                 HStack(spacing: 8) {
-                    Image(systemName: "leaf.fill")
-                        .font(.system(size: 26, weight: .semibold))
-                        .foregroundStyle(AppColors.primary)
+                    LeafShape()
+                        .fill(AppColors.primary)
+                        .frame(width: 28, height: 28)
 
                     HStack(spacing: 0) {
                         Text("NutriPack ")
@@ -130,5 +144,40 @@ struct OnboardingView: View {
         .fullScreenCover(isPresented: $showUserSetup) {
             UserSetupView()
         }
+    }
+}
+
+/// Leaf shape matching the app icon SVG path (24×24 coordinate space).
+private struct LeafShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width / 24
+        let h = rect.height / 24
+        var p = Path()
+        p.move(to: CGPoint(x: 17*w, y: 8*h))
+        p.addCurve(to: CGPoint(x: 3.82*w, y: 21.34*h),
+                   control1: CGPoint(x: 8*w, y: 10*h),
+                   control2: CGPoint(x: 5.9*w, y: 16.17*h))
+        p.addLine(to: CGPoint(x: 5.71*w, y: 22*h))
+        p.addLine(to: CGPoint(x: 6.66*w, y: 19.7*h))
+        p.addCurve(to: CGPoint(x: 8*w, y: 20*h),
+                   control1: CGPoint(x: 7.14*w, y: 19.87*h),
+                   control2: CGPoint(x: 7.64*w, y: 20*h))
+        p.addCurve(to: CGPoint(x: 22*w, y: 3*h),
+                   control1: CGPoint(x: 19*w, y: 20*h),
+                   control2: CGPoint(x: 22*w, y: 3*h))
+        p.addCurve(to: CGPoint(x: 9*w, y: 6.25*h),
+                   control1: CGPoint(x: 21*w, y: 5*h),
+                   control2: CGPoint(x: 14*w, y: 5.25*h))
+        p.addCurve(to: CGPoint(x: 2*w, y: 13.5*h),
+                   control1: CGPoint(x: 4*w, y: 7.25*h),
+                   control2: CGPoint(x: 2*w, y: 11.5*h))
+        p.addCurve(to: CGPoint(x: 3.75*w, y: 17.25*h),
+                   control1: CGPoint(x: 2*w, y: 15.5*h),
+                   control2: CGPoint(x: 3.75*w, y: 17.25*h))
+        p.addCurve(to: CGPoint(x: 17*w, y: 8*h),
+                   control1: CGPoint(x: 7*w, y: 8*h),
+                   control2: CGPoint(x: 17*w, y: 8*h))
+        p.closeSubpath()
+        return p
     }
 }

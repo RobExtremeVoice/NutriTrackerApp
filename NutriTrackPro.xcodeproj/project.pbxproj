@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -111,7 +111,7 @@
 		2993D16418611C8B74427F46 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		2DBD11AB55A01F100CFE7D4A /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		30A07AB50872ADBB413CA38F /* MealRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealRowView.swift; sourceTree = "<group>"; };
-		3C537BD60CD4B5CDC87CE48B /* NutriTrackPro.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NutriTrackPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C537BD60CD4B5CDC87CE48B /* NutriTrackPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NutriTrackPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4065B4DEB0BD80085142ECC2 /* FoodVisionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodVisionService.swift; sourceTree = "<group>"; };
 		4B92C6D93E058624B7B43878 /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
 		51668DD9763ED6999F0ACD07 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -160,7 +160,7 @@
 		F48706C8F8E29468191D6912 /* DayLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayLogView.swift; sourceTree = "<group>"; };
 		F4D3E75A3D14030EF8B98472 /* NutritionInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionInfo.swift; sourceTree = "<group>"; };
 		F5B1C9A26F16B8B1DC662C8D /* FoodAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodAnalysisView.swift; sourceTree = "<group>"; };
-		FC29321742F1B49196227042 /* NutriTrackProWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = NutriTrackProWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC29321742F1B49196227042 /* NutriTrackProWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NutriTrackProWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FD41C0543EDD93328B567203 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		FEC9673728C9A7B0A01EA9B5 /* WeightChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChartView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -459,14 +459,9 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					0CD4480BF5465C5720ACCFC3 = {
-						DevelopmentTeam = 2M9299AGA8;
-						ProvisioningStyle = Automatic;
-					};
-					8C5C031A6CD7A90171D3787F = {
-						DevelopmentTeam = 2M9299AGA8;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -481,7 +476,6 @@
 			);
 			mainGroup = 2EDE110229429D89509D2CB7;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -591,7 +585,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = NutriTrackPro/NutriTrackPro.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4NQ7YR36HM;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = NutriTrackPro/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -600,6 +596,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.extremeresults.nutripackproapp;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -666,6 +663,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -676,6 +674,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = NutriTrackProWidget/NutriTrackProWidget.entitlements;
+				DEVELOPMENT_TEAM = 4NQ7YR36HM;
 				INFOPLIST_FILE = NutriTrackProWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -695,6 +694,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = NutriTrackProWidget/NutriTrackProWidget.entitlements;
+				DEVELOPMENT_TEAM = 4NQ7YR36HM;
 				INFOPLIST_FILE = NutriTrackProWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -715,7 +715,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = NutriTrackPro/NutriTrackPro.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4NQ7YR36HM;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = NutriTrackPro/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -724,6 +726,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.extremeresults.nutripackproapp;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -783,6 +786,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;

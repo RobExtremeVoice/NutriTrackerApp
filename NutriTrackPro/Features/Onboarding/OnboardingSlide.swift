@@ -6,6 +6,9 @@ struct OnboardingSlideData: Identifiable {
     let title: String
     let subtitle: String
     let backgroundColors: [Color]
+    /// Nome do asset em Assets.xcassets usado como fundo do slide (opcional).
+    /// Se nil ou não encontrado, usa o gradiente de cor.
+    var imageName: String? = nil
 }
 
 /// Conteúdo de cada slide: ícone em glass card + título + subtítulo.
