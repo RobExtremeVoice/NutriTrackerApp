@@ -31,8 +31,8 @@ enum MealType: String, CaseIterable, Codable {
     /// Horário padrão do lembrete.
     var reminderHour: Int {
         switch self {
-        case .breakfast: return 8
-        case .lunch:     return 12
+        case .breakfast: return 7
+        case .lunch:     return 11
         case .dinner:    return 19
         case .snack:     return 15
         }
@@ -40,8 +40,9 @@ enum MealType: String, CaseIterable, Codable {
 
     var reminderMinute: Int {
         switch self {
-        case .lunch: return 30
-        default:     return 0
+        case .breakfast: return 30
+        case .lunch:     return 50
+        default:         return 0
         }
     }
 }
@@ -54,6 +55,7 @@ final class Meal {
     var name: String
     var imageData: Data?          // foto comprimida em JPEG
     var timestamp: Date
+    var isFavorite: Bool = false  // marcado pelo usuário para acesso rápido
     @Relationship(deleteRule: .cascade) var foods: [FoodItem]
 
     init(type: MealType, name: String, imageData: Data? = nil, timestamp: Date = .now) {

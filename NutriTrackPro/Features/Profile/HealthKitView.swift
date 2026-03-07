@@ -2,11 +2,12 @@ import SwiftUI
 
 /// Toggle para sincronização com o Apple Health.
 struct HealthKitView: View {
-    @State private var isEnabled = false
-    @State private var showPermissionInfo = false
-    @State private var status: String = "Não autorizado"
+    @Environment(AppState.self) private var appState
+    @State private var status: String = ""
+    @State private var isRequesting = false
 
     var body: some View {
+        @Bindable var appState = appState
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -17,26 +18,37 @@ struct HealthKitView: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(AppColors.text)
                     Spacer()
-                    Toggle("", isOn: $isEnabled)
-                        .tint(AppColors.primary)
-                        .onChange(of: isEnabled) { _, enabled in
-                            if enabled { requestPermission() }
-                        }
+                    if isRequesting {
+                        ProgressView().scaleEffect(0.8)
+                    } else {
+                        Toggle("", isOn: $appState.healthKitEnabled)
+                            .tint(AppColors.primary)
+                            .onChange(of: appState.healthKitEnabled) { _, enabled in
+                                if enabled { requestPermission() }
+                                else { status = "" }
+                            }
+                    }
                 }
 
-                Text(status)
-                    .font(.caption)
-                    .foregroundStyle(AppColors.textSecondary)
+                if !status.isEmpty {
+                    Text(status)
+                        .font(.caption)
+                        .foregroundStyle(appState.healthKitEnabled ? AppColors.primary : .red)
+                }
 
-                if isEnabled {
+                if appState.healthKitEnabled {
                     VStack(alignment: .leading, spacing: 4) {
-                        featureRow("Registra calorias e macros")
-                        featureRow("Lê passos e energia ativa")
+                        featureRow("Sincroniza calorias e macros automaticamente")
+                        featureRow("Lê passos e energia ativa do dia")
                         featureRow("Sincroniza peso automaticamente")
                     }
+                    .padding(.top, 2)
                 }
             }
             .padding(16)
+        }
+        .onAppear {
+            if appState.healthKitEnabled { status = "Autorizado" }
         }
     }
 
@@ -52,14 +64,19 @@ struct HealthKitView: View {
     }
 
     private func requestPermission() {
+        isRequesting = true
         Task {
             do {
                 try await HealthKitService.shared.requestAuthorization()
-                await MainActor.run { status = "Autorizado" }
+                await MainActor.run {
+                    status = "Autorizado"
+                    isRequesting = false
+                }
             } catch {
                 await MainActor.run {
                     status = "Permissão negada — verifique em Ajustes > Saúde"
-                    isEnabled = false
+                    appState.healthKitEnabled = false
+                    isRequesting = false
                 }
             }
         }

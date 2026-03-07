@@ -21,6 +21,12 @@ struct NutriTrackProApp: App {
         }
     }()
 
+    init() {
+        // Registra categorias de notificação (inclui botão "📸 Registrar agora")
+        // Deve ser chamado antes de qualquer notificação ser agendada.
+        NotificationService.shared.registerCategories()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

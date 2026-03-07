@@ -10,10 +10,10 @@ enum AppConstants {
 
     // MARK: – StoreKit Product IDs
     enum ProductID {
-        static let proMonthly   = "com.nutritrack.pro.monthly"
-        static let proAnnual    = "com.nutritrack.pro.annual"
-        static let eliteMonthly = "com.nutritrack.elite.monthly"
-        static let eliteAnnual  = "com.nutritrack.elite.annual"
+        static let proMonthly   = "com.extremeresults.nutripackproapp.pro.monthly"
+        static let proAnnual    = "com.extremeresults.nutripackproapp.pro.annual"
+        static let eliteMonthly = "com.extremeresults.nutripackproapp.elite.monthly"
+        static let eliteAnnual  = "com.extremeresults.nutripackproapp.elite.annual"
 
         static var all: [String] {
             [proMonthly, proAnnual, eliteMonthly, eliteAnnual]
@@ -27,6 +27,7 @@ enum AppConstants {
         static let todayPhotoScanDate     = "todayPhotoScanDate"
         static let todayChatCount         = "todayChatCount"
         static let todayChatDate          = "todayChatDate"
+        static let healthKitEnabled       = "healthKitEnabled"
     }
 
     // MARK: – Design

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Linha de refeição na lista do Home com dados nutricionais.
+/// Linha de refeição na lista do Home com dados nutricionais e botão de favorito.
 struct MealRowView: View {
     let meal: Meal
 
@@ -47,6 +47,18 @@ struct MealRowView: View {
                     .font(.caption2)
                     .foregroundStyle(AppColors.textSecondary)
             }
+
+            // Botão favorito
+            Button {
+                withAnimation(.spring(duration: 0.3)) { meal.isFavorite.toggle() }
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            } label: {
+                Image(systemName: meal.isFavorite ? "star.fill" : "star")
+                    .font(.system(size: 16))
+                    .foregroundStyle(meal.isFavorite ? Color(hex: "F59E0B") : AppColors.textSecondary.opacity(0.5))
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .buttonStyle(.plain)
         }
         .padding(12)
     }

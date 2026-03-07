@@ -1,6 +1,6 @@
 name: NutriTrackPro
 options:
-  bundleIdPrefix: com.nutritrack
+  bundleIdPrefix: com.extremeresults
   deploymentTarget:
     iOS: "17.0"
   xcodeVersion: "16.0"
@@ -11,7 +11,7 @@ settings:
   base:
     SWIFT_VERSION: 5.9
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: "2M9299AGA8"
     CODE_SIGN_STYLE: Automatic
 
 targets:
@@ -27,7 +27,7 @@ targets:
       - path: NutriTrackPro/Resources/Assets.xcassets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.nutritrack.pro
+        PRODUCT_BUNDLE_IDENTIFIER: com.extremeresults.nutripackproapp
         SWIFT_EMIT_LOC_STRINGS: YES
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         INFOPLIST_FILE: NutriTrackPro/Resources/Info.plist
@@ -40,15 +40,15 @@ targets:
       path: NutriTrackPro/Resources/Info.plist
       properties:
         CFBundleDevelopmentRegion: pt_BR
-        CFBundleDisplayName: NutriTrack Pro
+        CFBundleDisplayName: NutriPack Pro
         CFBundleShortVersionString: "1.0.0"
         CFBundleVersion: "1"
         LSRequiresIPhoneOS: true
-        NSCameraUsageDescription: "O NutriTrack Pro usa a câmera para fotografar suas refeições e analisar os nutrientes automaticamente com inteligência artificial."
-        NSPhotoLibraryUsageDescription: "O NutriTrack Pro acessa sua galeria para que você possa selecionar fotos de refeições e analisar os nutrientes."
-        NSPhotoLibraryAddUsageDescription: "O NutriTrack Pro salva fotos das suas refeições na galeria."
-        NSHealthShareUsageDescription: "O NutriTrack Pro lê seus dados de saúde (passos e peso) para complementar seu acompanhamento nutricional."
-        NSHealthUpdateUsageDescription: "O NutriTrack Pro registra suas calorias e macronutrientes no Apple Health para um acompanhamento completo da sua saúde."
+        NSCameraUsageDescription: "O NutriPack Pro usa a câmera para fotografar suas refeições e analisar os nutrientes automaticamente com inteligência artificial."
+        NSPhotoLibraryUsageDescription: "O NutriPack Pro acessa sua galeria para que você possa selecionar fotos de refeições e analisar os nutrientes."
+        NSPhotoLibraryAddUsageDescription: "O NutriPack Pro salva fotos das suas refeições na galeria."
+        NSHealthShareUsageDescription: "O NutriPack Pro lê seus dados de saúde (passos e peso) para complementar seu acompanhamento nutricional."
+        NSHealthUpdateUsageDescription: "O NutriPack Pro registra suas calorias e macronutrientes no Apple Health para um acompanhamento completo da sua saúde."
         OPENAI_API_KEY: "$(OPENAI_API_KEY)"
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
@@ -61,7 +61,44 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
+    dependencies:
+      - target: NutriTrackProWidget
+        embed: true
+      - sdk: WidgetKit.framework
     entitlements:
       path: NutriTrackPro/NutriTrackPro.entitlements
       properties:
         "com.apple.developer.healthkit": true
+        "com.apple.developer.usernotifications.time-sensitive": true
+        "com.apple.security.application-groups":
+          - "group.com.extremeresults.nutripackproapp"
+
+  NutriTrackProWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: NutriTrackProWidget
+      - path: NutriTrackPro/Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.extremeresults.nutripackproapp.widget
+        SWIFT_VERSION: 5.9
+        SWIFT_EMIT_LOC_STRINGS: YES
+    info:
+      path: NutriTrackProWidget/Info.plist
+      properties:
+        CFBundleDevelopmentRegion: pt_BR
+        CFBundleDisplayName: NutriPack Pro
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: NutriTrackProWidget/NutriTrackProWidget.entitlements
+      properties:
+        "com.apple.security.application-groups":
+          - "group.com.extremeresults.nutripackproapp"
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework

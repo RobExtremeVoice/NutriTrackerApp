@@ -15,6 +15,12 @@ final class AppState {
     var showMealReminder:    Bool     = false
     var mealReminderType:    MealType = .lunch
 
+    // MARK: – HealthKit integration
+    // Persisted across launches — toggled in HealthKitView.
+    var healthKitEnabled: Bool = UserDefaults.standard.bool(forKey: AppConstants.Defaults.healthKitEnabled) {
+        didSet { UserDefaults.standard.set(healthKitEnabled, forKey: AppConstants.Defaults.healthKitEnabled) }
+    }
+
     // MARK: – Selected date (Diary / Home)
     var selectedDate: Date = .now
 

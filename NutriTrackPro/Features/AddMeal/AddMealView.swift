@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 import SwiftData
+import WidgetKit
 
 enum AddMealTab: String, CaseIterable {
     case camera  = "Câmera"
@@ -32,6 +33,7 @@ struct AddMealView: View {
     @State private var analysisResult: FoodAnalysisResult?
     @State private var analysisError: String?
     @State private var showAnalysisError = false
+    @State private var milestoneReached: Int? = nil
 
     var body: some View {
         NavigationStack {
@@ -70,6 +72,11 @@ struct AddMealView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(analysisError ?? "Erro desconhecido")
+            }
+            .alert(milestoneTitle, isPresented: milestoneBinding) {
+                Button("Incrível! 🎉") { dismiss() }
+            } message: {
+                Text(milestoneMessage)
             }
             .fullScreenCover(isPresented: $showCamera) {
                 CameraView(capturedImage: $capturedImage).ignoresSafeArea()
@@ -457,16 +464,83 @@ struct AddMealView: View {
         }
         modelContext.insert(meal)
 
-        // Update streak — fetch profile from current context
+        // Update streak and check milestones
+        var hitMilestone = false
+        var savedProfile: UserProfile? = nil
         if let profile = try? modelContext.fetch(FetchDescriptor<UserProfile>()).first {
+            savedProfile = profile
             updateStreak(profile: profile)
+            hitMilestone = checkStreakMilestone(streak: profile.streakDays)
+        }
+
+        // Sync nutrition to Apple Health if authorised
+        if appState.healthKitEnabled {
+            Task { try? await HealthKitService.shared.syncNutrition(meal: meal) }
         }
 
         // Reset the 26h re-engagement timer on every successful log
         Task { await NotificationService.shared.scheduleReEngagementReminder() }
 
+        // Update Home Screen widget with today's totals
+        let startOfDay = Calendar.current.startOfDay(for: Date())
+        if let todayMeals = try? modelContext.fetch(
+            FetchDescriptor<Meal>(predicate: #Predicate { $0.timestamp >= startOfDay })
+        ) {
+            let total = todayMeals.reduce(NutritionInfo.zero) { $0 + $1.totalNutrition }
+            WidgetDataStore.shared.write(NutriWidgetEntry(
+                caloriesConsumed: total.calories,
+                calorieGoal:      savedProfile?.dailyCalorieGoal ?? 2000,
+                protein:          total.protein,
+                carbs:            total.carbs,
+                fat:              total.fat,
+                streakDays:       savedProfile?.streakDays ?? 0,
+                updatedAt:        .now
+            ))
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+
         UINotificationFeedbackGenerator().notificationOccurred(.success)
-        dismiss()
+
+        // If a milestone was reached, show the achievement alert before dismissing
+        if !hitMilestone { dismiss() }
+    }
+
+    // MARK: – Streak milestones
+
+    private static let milestones = [7, 14, 21, 30, 60, 100]
+
+    /// Retorna `true` se `streak` bate um marco — e aciona o alerta.
+    @discardableResult
+    private func checkStreakMilestone(streak: Int) -> Bool {
+        guard Self.milestones.contains(streak) else { return false }
+        milestoneReached = streak
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        return true
+    }
+
+    private var milestoneBinding: Binding<Bool> {
+        Binding(
+            get: { milestoneReached != nil },
+            set: { if !$0 { milestoneReached = nil } }
+        )
+    }
+
+    private var milestoneTitle: String {
+        guard let days = milestoneReached else { return "" }
+        switch days {
+        case 7:   return "1 semana consecutiva! 🔥"
+        case 14:  return "2 semanas seguidas! 💪"
+        case 21:  return "21 dias — novo hábito! 🧠"
+        case 30:  return "1 mês de sequência! 🏆"
+        case 60:  return "2 meses imparáveis! 🚀"
+        case 100: return "100 dias lendários! 👑"
+        default:  return "Nova conquista! 🎉"
+        }
+    }
+
+    private var milestoneMessage: String {
+        guard let days = milestoneReached else { return "" }
+        return "Você registrou \(days) dias seguidos no NutriPack Pro. Continue assim!"
     }
 
     /// Atualiza a sequência diária do usuário (streakDays + lastLogDate).

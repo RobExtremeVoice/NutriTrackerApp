@@ -1,27 +1,50 @@
 import SwiftUI
+import SwiftData
 
-/// Entrada manual de alimentos — busca, detalhe e confirmação via IA.
+/// Entrada manual de alimentos — busca na biblioteca pessoal do usuário e confirmação via IA.
 struct BarcodeView: View {
     @Binding var foodDescription: String
     let onAnalyze: () -> Void
 
     @State private var searchText    = ""
-    @State private var selectedFood: RecentFood? = nil
+    @State private var selectedFood: LibraryFood? = nil
     @FocusState private var searchFocused: Bool
 
-    // Sugestões mock — em produção viria de banco ou API
-    private let recentFoods: [RecentFood] = [
-        RecentFood(name: "Arroz branco cozido", portion: "100g", kcal: 130, protein: 2.7, carbs: 28.2, fat: 0.3),
-        RecentFood(name: "Frango grelhado",      portion: "100g", kcal: 165, protein: 31.0, carbs: 0.0,  fat: 3.6),
-        RecentFood(name: "Feijão carioca cozido",portion: "100g", kcal:  76, protein: 4.8,  carbs: 13.6, fat: 0.5),
-        RecentFood(name: "Ovo mexido",            portion: "1 un",kcal:  91, protein: 6.3,  carbs: 0.6,  fat: 6.8),
-        RecentFood(name: "Banana nanica",         portion: "1 un",kcal:  89, protein: 1.1,  carbs: 22.8, fat: 0.3),
-        RecentFood(name: "Salada verde mista",    portion: "100g", kcal:  20, protein: 1.5,  carbs: 2.8,  fat: 0.4),
-    ]
+    /// Todos os itens já registrados pelo usuário (fonte da biblioteca pessoal)
+    @Query(sort: \FoodItem.name) private var allFoodItems: [FoodItem]
 
-    private var filteredFoods: [RecentFood] {
-        guard !searchText.isEmpty else { return recentFoods }
-        return recentFoods.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+    /// Top 20 alimentos mais frequentes nos registros do usuário
+    private var libraryFoods: [LibraryFood] {
+        var frequency: [String: (item: FoodItem, count: Int)] = [:]
+        for item in allFoodItems {
+            let key = item.name.lowercased()
+            if let existing = frequency[key] {
+                frequency[key] = (existing.item, existing.count + 1)
+            } else {
+                frequency[key] = (item, 1)
+            }
+        }
+        return frequency.values
+            .sorted { $0.count > $1.count }
+            .prefix(20)
+            .map { entry in
+                let n = entry.item.nutrition
+                let weight = entry.item.weightG
+                return LibraryFood(
+                    name:    entry.item.name,
+                    portion: "\(Int(weight))g",
+                    kcal:    n.calories,
+                    protein: n.protein,
+                    carbs:   n.carbs,
+                    fat:     n.fat,
+                    count:   entry.count
+                )
+            }
+    }
+
+    private var filteredFoods: [LibraryFood] {
+        guard !searchText.isEmpty else { return libraryFoods }
+        return libraryFoods.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
     }
 
     private var canConfirm: Bool {
@@ -66,16 +89,20 @@ struct BarcodeView: View {
 
                     // Lista de sugestões / resultados
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(searchText.isEmpty ? "Recentes" : "Resultados")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(AppColors.textSecondary)
-                            .padding(.horizontal, 16)
-
-                        if filteredFoods.isEmpty {
-                            emptyState
+                        if libraryFoods.isEmpty && searchText.isEmpty {
+                            emptyLibraryState
                         } else {
-                            ForEach(filteredFoods) { food in
-                                foodRow(food)
+                            Text(searchText.isEmpty ? "Minha Biblioteca" : "Resultados")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(AppColors.textSecondary)
+                                .padding(.horizontal, 16)
+
+                            if filteredFoods.isEmpty {
+                                emptySearchState
+                            } else {
+                                ForEach(filteredFoods) { food in
+                                    foodRow(food)
+                                }
                             }
                         }
                     }
@@ -116,10 +143,10 @@ struct BarcodeView: View {
         }
     }
 
-    // MARK: – Subviews
+    // MARK: - Subviews
 
     @ViewBuilder
-    private func selectedFoodCard(_ food: RecentFood) -> some View {
+    private func selectedFoodCard(_ food: LibraryFood) -> some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -175,7 +202,7 @@ struct BarcodeView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func foodRow(_ food: RecentFood) -> some View {
+    private func foodRow(_ food: LibraryFood) -> some View {
         Button {
             withAnimation(.spring(duration: 0.3)) {
                 selectedFood = food
@@ -195,6 +222,13 @@ struct BarcodeView: View {
                             .foregroundStyle(AppColors.textSecondary)
                     }
                     Spacer()
+                    // Frequência de uso
+                    if food.count > 1 {
+                        Text("\(food.count)x")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(AppColors.primary.opacity(0.7))
+                            .padding(.trailing, 4)
+                    }
                     Image(systemName: "plus.circle")
                         .font(.system(size: 20))
                         .foregroundStyle(AppColors.primary)
@@ -205,7 +239,29 @@ struct BarcodeView: View {
         }
     }
 
-    private var emptyState: some View {
+    /// Mostrado quando o usuário ainda não tem histórico (primeiro uso)
+    private var emptyLibraryState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "books.vertical")
+                .font(.system(size: 40))
+                .foregroundStyle(AppColors.textSecondary.opacity(0.35))
+            Text("Sua biblioteca está vazia")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(AppColors.textSecondary)
+            Text("Os alimentos que você registrar\naparecerão aqui automaticamente.")
+                .font(.system(size: 13))
+                .foregroundStyle(AppColors.textSecondary.opacity(0.7))
+                .multilineTextAlignment(.center)
+            Text("Use \"Analisar com IA\" para começar ↓")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(AppColors.primary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+
+    /// Mostrado quando a busca não retorna resultados
+    private var emptySearchState: some View {
         VStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 36))
@@ -225,7 +281,7 @@ struct BarcodeView: View {
 
 // MARK: - Model
 
-struct RecentFood: Identifiable {
+struct LibraryFood: Identifiable {
     let id      = UUID()
     let name:    String
     let portion: String
@@ -233,4 +289,5 @@ struct RecentFood: Identifiable {
     let protein: Double
     let carbs:   Double
     let fat:     Double
+    let count:   Int   // vezes que o usuário registrou esse alimento
 }

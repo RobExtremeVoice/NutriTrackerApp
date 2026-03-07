@@ -89,7 +89,7 @@ struct PaywallView: View {
                             title: "Plano Gratuito",
                             price: "R$ 0,00",
                             period: "sempre",
-                            features: ["3 scans de comida por dia"],
+                            features: ["10 scans de comida por dia"],
                             isHighlighted: false,
                             icon: "leaf"
                         )

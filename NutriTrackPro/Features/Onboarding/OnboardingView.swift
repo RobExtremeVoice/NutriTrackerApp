@@ -71,7 +71,7 @@ struct OnboardingView: View {
                         .foregroundStyle(AppColors.primary)
 
                     HStack(spacing: 0) {
-                        Text("NutriTrack ")
+                        Text("NutriPack ")
                             .font(.system(size: 22, weight: .bold))
                             .foregroundStyle(.white)
                         Text("Pro")

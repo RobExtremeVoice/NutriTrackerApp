@@ -25,6 +25,7 @@ struct ProgressView: View {
 
     @State private var selectedPeriod: ProgressPeriod = .week
     @State private var showWeightSheet = false
+    @State private var showShareSheet  = false
     @State private var weightInput = ""
     @Namespace private var periodNS
 
@@ -151,20 +152,46 @@ struct ProgressView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showWeightSheet = true } label: {
-                        ZStack {
-                            Circle()
-                                .fill(AppColors.protein.opacity(0.12))
-                                .frame(width: 34, height: 34)
-                            Image(systemName: "scalemass.fill")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(AppColors.protein)
+                    HStack(spacing: 8) {
+                        // Compartilhar progresso
+                        Button { showShareSheet = true } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(AppColors.primary.opacity(0.12))
+                                    .frame(width: 34, height: 34)
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(AppColors.primary)
+                            }
+                        }
+                        // Registrar peso
+                        Button { showWeightSheet = true } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(AppColors.protein.opacity(0.12))
+                                    .frame(width: 34, height: 34)
+                                Image(systemName: "scalemass.fill")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(AppColors.protein)
+                            }
                         }
                     }
                 }
             }
             .sheet(isPresented: $showWeightSheet) {
                 weightEntrySheet
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareProgressSheet(
+                    calories:    avgCalories,
+                    calorieGoal: calorieGoal,
+                    protein:     avgMacros.protein,
+                    carbs:       avgMacros.carbs,
+                    fat:         avgMacros.fat,
+                    streakDays:  streakDays
+                )
+                .presentationDetents([.medium, .large])
+                .presentationCornerRadius(28)
             }
         }
     }
